@@ -663,6 +663,11 @@ html, body {
 .gc-macro-fill.carbs   { background: #3B82F6; }
 .gc-macro-fill.fat     { background: #F59E0B; }
 .gc-macro-fill.protein { background: #16A34A; }
+
+.gc-meal-kcal-activity {
+  background: #EFF6FF;
+  color: #2563EB;
+}
 .gc-suggest-list li span   { font-size: 12px; color: var(--gc-ink-3); margin-top: 2px; }
 .gc-suggest-empty {
   margin-top: 12px;

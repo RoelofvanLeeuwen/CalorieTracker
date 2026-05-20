@@ -1,6 +1,7 @@
 @page "/"
 @inject IUserProfileRepository ProfileRepo
 @inject IConsumptionEntryRepository ConsumptionRepo
+@inject IActivityRepository ActivityRepo
 @inject NavigationManager Nav
 
 <PageTitle>Dashboard — CalorieTracker</PageTitle>
@@ -15,8 +16,8 @@ else if (_profile is null)
 }
 else
 {
-    var goal = DailyGoalCalculator.Calculate(_profile);
-    var eaten    = _dayLog?.TotalKcal    ?? 0m;
+    var goal      = DailyGoalCalculator.Calculate(_profile);
+    var eaten     = _dayLog?.TotalKcal    ?? 0m;
     var remaining = goal.TotalKcal - eaten;
     var isOver    = eaten > goal.TotalKcal;
     var kcalPct   = goal.TotalKcal > 0 ? (double)(eaten / goal.TotalKcal) * 100.0 : 0;
@@ -116,7 +117,7 @@ else
                         }
                     </div>
                     <button class="gc-btn gc-btn-ghost gc-btn-sm"
-                            @onclick="() => OpenWizard(mm.MealMoment)">
+                            @onclick="() => OpenConsumptieWizard(mm.MealMoment)">
                         <GcIcon Name="plus" Size="14" /> Toevoegen
                     </button>
                 </div>
@@ -152,17 +153,65 @@ else
         }
     }
 
-    <ConsumptieWizard @ref="_wizard" OnCompleted="LoadDayLog" />
+    @* ── Activiteiten ── *@
+    <section class="gc-meal-section">
+        <div class="gc-meal-header">
+            <div class="gc-meal-header-left">
+                <span class="gc-meal-title">Activiteiten</span>
+                @if ((_dayActivityLog?.TotalKcalBurned ?? 0m) > 0)
+                {
+                    <span class="gc-meal-kcal gc-meal-kcal-activity">
+                        @_dayActivityLog!.TotalKcalBurned.ToString("F0") kcal verbrand
+                    </span>
+                }
+            </div>
+            <button class="gc-btn gc-btn-ghost gc-btn-sm" @onclick="OpenActiviteitWizard">
+                <GcIcon Name="plus" Size="14" /> Toevoegen
+            </button>
+        </div>
+        @if (_dayActivityLog?.Activities.Count > 0)
+        {
+            <div class="gc-card" style="margin-top: 8px;">
+                <table class="gc-table">
+                    <thead>
+                        <tr>
+                            <th>Activiteit</th>
+                            <th class="gc-col-num">Duur</th>
+                            <th class="gc-col-num">kcal verbrand</th>
+                            <th class="gc-col-num gc-col-macro">Tijd</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _dayActivityLog.Activities)
+                        {
+                            <tr>
+                                <td>@a.Name</td>
+                                <td class="gc-col-num">@a.DurationMinutes min</td>
+                                <td class="gc-col-num">@a.KcalBurned.ToString("F0")</td>
+                                <td class="gc-col-num gc-col-macro">@a.PerformedAt.ToString("HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <ConsumptieWizard  @ref="_consumptieWizard"  OnCompleted="LoadDayLog" />
+    <ActiviteitWizard  @ref="_activiteitWizard"  OnCompleted="LoadDayLog"
+                       UserWeightKg="@(_profile.WeightKg)" />
 }
 
 @code {
     private static readonly System.Globalization.CultureInfo _nl = new("nl-NL");
 
-    private DateOnly       _today = DateOnly.FromDateTime(DateTime.Today);
-    private UserProfileDto? _profile;
-    private DayLogDto?      _dayLog;
-    private ConsumptieWizard _wizard = null!;
-    private bool            _loading = true;
+    private DateOnly            _today = DateOnly.FromDateTime(DateTime.Today);
+    private UserProfileDto?     _profile;
+    private DayLogDto?          _dayLog;
+    private DayActivityLogDto?  _dayActivityLog;
+    private ConsumptieWizard    _consumptieWizard = null!;
+    private ActiviteitWizard    _activiteitWizard = null!;
+    private bool                _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,10 +227,14 @@ else
 
     private async Task LoadDayLog()
     {
-        _dayLog = await ConsumptionRepo.GetDayLogAsync(_today);
+        _dayLog         = await ConsumptionRepo.GetDayLogAsync(_today);
+        _dayActivityLog = await ActivityRepo.GetDayLogAsync(_today);
         StateHasChanged();
     }
 
-    private void OpenWizard(MealMomentDto mealMoment) =>
-        _wizard.Open(mealMoment, _today);
+    private void OpenConsumptieWizard(MealMomentDto mealMoment) =>
+        _consumptieWizard.Open(mealMoment, _today);
+
+    private void OpenActiviteitWizard() =>
+        _activiteitWizard.Open(_today);
 }
