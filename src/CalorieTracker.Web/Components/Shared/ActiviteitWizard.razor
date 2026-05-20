@@ -2,8 +2,10 @@
 
 @if (_isOpen)
 {
-    <div class="gc-modal-backdrop" @onclick="Close">
-        <div class="gc-modal" @onclick:stopPropagation>
+    <div class="gc-modal-backdrop"
+         @onmousedown="() => _backdropMouseDown = true"
+         @onmouseup="OnBackdropMouseUp">
+        <div class="gc-modal" @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation>
 
             <div class="gc-modal-head">
                 <div>
@@ -145,6 +147,7 @@
     private enum Step { Search, Details }
 
     private bool   _isOpen;
+    private bool   _backdropMouseDown;
     private Step   _step      = Step.Search;
     private string _stepTitle = "Activiteit zoeken";
     private string? _error;
@@ -166,6 +169,12 @@
         _performedAt = forDate.ToDateTime(TimeOnly.FromDateTime(DateTime.Now));
         Reset();
         StateHasChanged();
+    }
+
+    private void OnBackdropMouseUp()
+    {
+        if (_backdropMouseDown) Close();
+        _backdropMouseDown = false;
     }
 
     private void Close()

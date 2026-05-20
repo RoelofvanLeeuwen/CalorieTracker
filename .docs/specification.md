@@ -134,9 +134,33 @@ Consument (enkelvoudig, geen login/authenticatie vereist in de initiële scope).
 
 ---
 
-### US-003 t/m US-004
+---
 
-_Volgen na akkoord en implementatie van US-002._
+### UX-BUG-001 — Modal sluit ongewenst bij tekst selecteren
+
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
+
+**Verhaal:**
+> Als gebruiker wil ik tekst kunnen selecteren in een invoerveld van een popup door te klikken en te slepen, ook als mijn muis de popup verlaat voordat ik de muisknop loslaat, zodat de popup niet onverwacht sluit.
+
+**Oorzaak:**
+De backdrop luisterde op `@onclick="Close"`. De browser vuurt een click-event op de backdrop zodra de `mouseup` daar eindigt, ook als de `mousedown` begon op een input binnen de modal.
+
+**Oplossing:**
+Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt propagation van `mousedown` en `mouseup`. De modal sluit alleen als zowel press als release op de backdrop plaatsvonden.
+
+**Scope:** `ConsumptieWizard.razor` en `ActiviteitWizard.razor`.
+
+**Acceptatiescenario's:**
+
+1. Open de popup voor een maaltijdmoment via "Toevoegen".
+2. Klik in het zoektekstvak en sleep naar links buiten de popup; laat de muisknop los buiten de popup.
+3. **Verwacht:** popup blijft open, tekst is geselecteerd.
+4. Klik op de donkere backdrop buiten de popup.
+5. **Verwacht:** popup sluit normaal.
+6. Herhaal voor de activiteitenpopup.
+
+---
 
 ## Toekomstige scope
 
