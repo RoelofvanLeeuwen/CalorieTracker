@@ -567,6 +567,102 @@ html, body {
 .gc-suggest-list li:last-child { border-bottom: none; }
 .gc-suggest-list li:hover { background: var(--gc-primary-50); }
 .gc-suggest-list li strong { font-size: 14px; font-weight: 700; }
+
+/* ===== Suggest empty state ===== */
+.gc-suggest-empty {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--gc-ink-3);
+  font-size: 14px;
+}
+
+/* ===== Radio list ===== */
+.gc-radiolist { display: flex; flex-direction: column; gap: 8px; }
+.gc-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--gc-line);
+  border-radius: var(--gc-radius-sm);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.gc-radio:hover     { border-color: var(--gc-primary); background: var(--gc-primary-50); }
+.gc-radio.is-checked { border-color: var(--gc-primary); background: var(--gc-primary-50); }
+.gc-radio-dot {
+  width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid var(--gc-line);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s;
+}
+.gc-radio.is-checked .gc-radio-dot { border-color: var(--gc-primary); }
+.gc-radio-dot i {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: transparent; transition: background .15s;
+}
+.gc-radio.is-checked .gc-radio-dot i { background: var(--gc-primary); }
+.gc-radio > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.gc-radio > span:last-child b  { font-size: 14px; font-weight: 700; color: var(--gc-ink); }
+.gc-radio > span:last-child em { font-size: 12.5px; color: var(--gc-ink-3); font-style: normal; }
+
+/* ===== Dashboard ===== */
+.gc-dashboard-goal {
+  background: var(--gc-card);
+  border: 1px solid var(--gc-line);
+  border-radius: var(--gc-radius);
+  box-shadow: var(--gc-shadow-sm);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.gc-goal-head {
+  display: flex; align-items: baseline;
+  justify-content: space-between;
+  gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.gc-goal-label {
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--gc-ink-3);
+}
+.gc-goal-eaten {
+  font-size: 28px; font-weight: 800;
+  letter-spacing: -0.03em; color: var(--gc-ink);
+}
+.gc-goal-eaten span { font-size: 16px; font-weight: 600; color: var(--gc-ink-3); letter-spacing: 0; }
+.gc-goal-remaining { font-size: 13px; font-weight: 600; color: var(--gc-ink-3); }
+.gc-goal-remaining.is-over { color: var(--gc-warn); }
+.gc-progress {
+  height: 10px; background: var(--gc-line); border-radius: 6px; overflow: hidden;
+}
+.gc-progress-fill {
+  height: 100%; border-radius: 6px; background: var(--gc-primary);
+  transition: width .4s ease; max-width: 100%;
+}
+.gc-progress-fill.is-over { background: var(--gc-warn); }
+
+.gc-macro-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
+}
+@media (max-width: 600px) { .gc-macro-grid { grid-template-columns: 1fr; } }
+.gc-macro-card {
+  background: var(--gc-card); border: 1px solid var(--gc-line);
+  border-radius: var(--gc-radius); box-shadow: var(--gc-shadow-sm); padding: 14px 16px;
+}
+.gc-macro-card-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--gc-ink-3); margin-bottom: 4px;
+}
+.gc-macro-card-values {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
+}
+.gc-macro-card-eaten { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--gc-ink); }
+.gc-macro-card-goal  { font-size: 12px; color: var(--gc-ink-3); font-weight: 600; }
+.gc-macro-bar  { height: 6px; background: var(--gc-line); border-radius: 4px; overflow: hidden; }
+.gc-macro-fill { height: 100%; border-radius: 4px; transition: width .4s ease; max-width: 100%; }
+.gc-macro-fill.carbs   { background: #3B82F6; }
+.gc-macro-fill.fat     { background: #F59E0B; }
+.gc-macro-fill.protein { background: #16A34A; }
 .gc-suggest-list li span   { font-size: 12px; color: var(--gc-ink-3); margin-top: 2px; }
 .gc-suggest-empty {
   margin-top: 12px;

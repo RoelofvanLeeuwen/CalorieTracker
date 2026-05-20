@@ -1,0 +1,172 @@
+@page "/profiel"
+@inject IUserProfileRepository ProfileRepo
+@inject NavigationManager Nav
+
+<PageTitle>Profiel — CalorieTracker</PageTitle>
+
+<div class="gc-pageheader">
+    <div>
+        <div class="gc-eyebrow">Instellingen</div>
+        <h1 class="gc-h1">Jouw profiel</h1>
+        <p class="gc-sub">Op basis van je profiel berekenen we je dagelijkse calorie- en macrodoelen.</p>
+    </div>
+</div>
+
+<div style="max-width: 580px;">
+
+    @* ── Lichaamsgegevens ── *@
+    <div class="gc-card" style="margin-bottom: 16px;">
+        <div class="gc-card-head"><div class="gc-card-title">Lichaamsgegevens</div></div>
+        <div class="gc-card-body">
+            <div class="gc-form">
+                <div class="gc-form-row">
+                    <label class="gc-field">
+                        <span>Gewicht (kg)</span>
+                        <input type="number" @bind="_weightKg" min="30" max="250" step="0.1" placeholder="bijv. 75" />
+                    </label>
+                    <label class="gc-field">
+                        <span>Lengte (cm)</span>
+                        <input type="number" @bind="_heightCm" min="100" max="250" placeholder="bijv. 175" />
+                    </label>
+                </div>
+                <div class="gc-form-row">
+                    <label class="gc-field">
+                        <span>Leeftijd</span>
+                        <input type="number" @bind="_ageYears" min="10" max="120" placeholder="bijv. 35" />
+                    </label>
+                    <label class="gc-field">
+                        <span>Geslacht</span>
+                        <select @bind="_gender">
+                            @foreach (var g in Enum.GetValues<GenderDto>())
+                            {
+                                <option value="@g">@g.GetLabel()</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── Activiteitsniveau ── *@
+    <div class="gc-card" style="margin-bottom: 16px;">
+        <div class="gc-card-head"><div class="gc-card-title">Activiteitsniveau</div></div>
+        <div class="gc-card-body">
+            <div class="gc-radiolist">
+                @foreach (var level in Enum.GetValues<ActivityLevelDto>())
+                {
+                    <label class="gc-radio @(_activityLevel == level ? "is-checked" : "")"
+                           @onclick="() => _activityLevel = level">
+                        <span class="gc-radio-dot"><i></i></span>
+                        <span>
+                            <b>@level.GetLabel()</b>
+                            <em>@level.GetDescription()</em>
+                        </span>
+                    </label>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── Doelstelling ── *@
+    <div class="gc-card" style="margin-bottom: 16px;">
+        <div class="gc-card-head"><div class="gc-card-title">Doelstelling</div></div>
+        <div class="gc-card-body">
+            <div class="gc-radiolist">
+                @foreach (var goal in Enum.GetValues<GoalTypeDto>())
+                {
+                    <label class="gc-radio @(_goalType == goal ? "is-checked" : "")"
+                           @onclick="() => _goalType = goal">
+                        <span class="gc-radio-dot"><i></i></span>
+                        <span><b>@goal.GetLabel()</b></span>
+                    </label>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── Macroprofiel ── *@
+    <div class="gc-card" style="margin-bottom: 24px;">
+        <div class="gc-card-head"><div class="gc-card-title">Macroprofiel</div></div>
+        <div class="gc-card-body">
+            <div class="gc-radiolist">
+                @foreach (var mp in Enum.GetValues<MacroProfileDto>())
+                {
+                    <label class="gc-radio @(_macroProfile == mp ? "is-checked" : "")"
+                           @onclick="() => _macroProfile = mp">
+                        <span class="gc-radio-dot"><i></i></span>
+                        <span>
+                            <b>@mp.GetLabel()</b>
+                            <em>@mp.GetDescription()</em>
+                        </span>
+                    </label>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="gc-alert" style="margin-bottom: 16px;">
+            <GcIcon Name="info" Size="16" />
+            <div>@_error</div>
+        </div>
+    }
+
+    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        @if (_hasExistingProfile)
+        {
+            <a class="gc-btn gc-btn-ghost" href="/">Annuleren</a>
+        }
+        <button class="gc-btn gc-btn-primary" @onclick="Save" disabled="@_saving">
+            @if (_saving) { <span>Opslaan…</span> } else { <span>Opslaan</span> }
+        </button>
+    </div>
+
+</div>
+
+@code {
+    private decimal          _weightKg     = 70m;
+    private int              _heightCm     = 175;
+    private int              _ageYears     = 30;
+    private GenderDto        _gender       = GenderDto.Male;
+    private ActivityLevelDto _activityLevel = ActivityLevelDto.Moderate;
+    private GoalTypeDto      _goalType     = GoalTypeDto.Maintain;
+    private MacroProfileDto  _macroProfile = MacroProfileDto.Balanced;
+
+    private bool    _saving;
+    private bool    _hasExistingProfile;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var existing = await ProfileRepo.GetAsync();
+        if (existing is not null)
+        {
+            _hasExistingProfile = true;
+            _weightKg      = existing.WeightKg;
+            _heightCm      = existing.HeightCm;
+            _ageYears      = existing.AgeYears;
+            _gender        = existing.Gender;
+            _activityLevel = existing.ActivityLevel;
+            _goalType      = existing.GoalType;
+            _macroProfile  = existing.MacroProfile;
+        }
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+        if (_weightKg <= 0)    { _error = "Vul een geldig gewicht in.";  return; }
+        if (_heightCm <= 0)    { _error = "Vul een geldige lengte in.";  return; }
+        if (_ageYears <= 0)    { _error = "Vul een geldige leeftijd in."; return; }
+
+        _saving = true;
+        await ProfileRepo.SaveAsync(new UpdateUserProfileDto(
+            _weightKg, _heightCm, _ageYears,
+            _gender, _activityLevel, _goalType, _macroProfile));
+        _saving = false;
+
+        Nav.NavigateTo("/");
+    }
+}
