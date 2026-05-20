@@ -192,6 +192,33 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+---
+
+### UX-005 — Consumptie-items en activiteiten verwijderen
+
+**Status:** In ontwikkeling
+
+**Verhaal:**
+> Als gebruiker wil ik een consumptie-item of activiteit kunnen verwijderen via een prullenbak-icoon per rij, zodat ik foute invoer kan corrigeren.
+
+**Verfijningen:**
+- Prullenbak-icoon per rij in consumptietabellen en activiteitentabel.
+- Klikken opent een bevestigingsdialoog ("Weet je zeker dat je dit wilt verwijderen?").
+- Na bevestiging wordt het item verwijderd en herlaadt het dashboard.
+- Na annuleren blijft het item staan.
+
+**Scope:** `GcIcon.razor`, `IConsumptionEntryRepository`, `IActivityRepository`, `ConsumptionEntryRepository`, `ActivityRepository`, `BevestigingModal.razor` (nieuw), `Home.razor`.
+
+**Acceptatiescenario's:**
+
+1. Ik klap een maaltijdmoment open — elke rij toont een prullenbak-icoon.
+2. Ik klik op het icoon — een bevestigingsdialoog verschijnt.
+3. Ik klik "Annuleren" — dialoog sluit, item blijft staan.
+4. Ik klik opnieuw op het icoon en klik "Verwijderen" — item verdwijnt, subtotalen en voortgangsbalk worden bijgewerkt.
+5. Ik klik op het prullenbak-icoon van een activiteit en bevestig — activiteit verdwijnt, verbrand-totaal wordt bijgewerkt.
+
+---
+
 ## Toekomstige scope
 
 - AI-fotoherkenning: gebruiker maakt een foto van zijn maaltijd, het systeem herkent de producten en geschatte hoeveelheden via een AI-model.

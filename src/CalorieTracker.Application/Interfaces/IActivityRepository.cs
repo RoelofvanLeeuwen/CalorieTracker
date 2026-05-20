@@ -6,4 +6,5 @@ public interface IActivityRepository
 {
     Task<DayActivityLogDto> GetDayLogAsync(DateOnly date, CancellationToken ct = default);
     Task<ActivityDto>       AddAsync(AddActivityDto dto, CancellationToken ct = default);
+    Task                    DeleteAsync(int id, CancellationToken ct = default);
 }
