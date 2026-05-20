@@ -219,6 +219,33 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+---
+
+### UX-007 — Responsive modals: desktop gecentreerd, mobiel bottom sheet
+
+**Status:** In ontwikkeling
+
+**Verhaal:**
+> Als gebruiker op een mobiel apparaat wil ik dat popups als een bottom sheet van onderaf verschijnen in plaats van een gecentreerde dialoog, zodat de popup ergonomisch bereikbaar is en de inhoud van het scherm niet bedekt.
+
+**Verfijningen:**
+- Op desktop (> 640px): ongewijzigd, gecentreerd in het scherm.
+- Op mobiel (≤ 640px): modal dicht tegen de onderkant, volledige breedte, afgeronde bovenkant (16px), slide-up animatie.
+- Geldt voor alle bestaande modals: `ConsumptieWizard`, `ActiviteitWizard`, `BevestigingModal`.
+- Puur CSS-wijziging, geen functionele aanpassingen.
+
+**Scope:** `app.css` (media query).
+
+**Acceptatiescenario's:**
+
+1. Ik open de app op een desktopbrowser — de popup verschijnt gecentreerd op het scherm, ongewijzigd.
+2. Ik verklein het browservenster tot ≤ 640px — de popup verschijnt als bottom sheet onderaan, schuift omhoog.
+3. De backdrop is zichtbaar boven het sheet.
+4. Sluiten werkt op de gebruikelijke manier (backdrop klikken, annuleren).
+5. Herhaal voor alle drie de modals.
+
+---
+
 ## Toekomstige scope
 
 - AI-fotoherkenning: gebruiker maakt een foto van zijn maaltijd, het systeem herkent de producten en geschatte hoeveelheden via een AI-model.

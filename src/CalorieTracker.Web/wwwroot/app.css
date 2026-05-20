@@ -554,6 +554,25 @@ html, body {
   flex-shrink: 0;
 }
 
+/* ===== Modal — mobile bottom sheet ===== */
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .gc-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .gc-modal {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    animation: sheet-in .22s ease;
+  }
+}
+
 /* ===== Suggest list ===== */
 .gc-suggest-list {
   list-style: none;
