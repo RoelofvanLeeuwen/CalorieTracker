@@ -3,8 +3,10 @@
 
 @if (_isOpen)
 {
-    <div class="gc-modal-backdrop" @onclick="Close">
-        <div class="gc-modal" @onclick:stopPropagation>
+    <div class="gc-modal-backdrop"
+         @onmousedown="() => _backdropMouseDown = true"
+         @onmouseup="OnBackdropMouseUp">
+        <div class="gc-modal" @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation>
 
             <div class="gc-modal-head">
                 <div>
@@ -224,6 +226,14 @@
     private DateOnly      _forDate;
     private string        _mealLabel  = "";
     private string        _stepTitle  = "";
+
+    private bool _backdropMouseDown;
+
+    private void OnBackdropMouseUp()
+    {
+        if (_backdropMouseDown) Close();
+        _backdropMouseDown = false;
+    }
 
     // Search
     private string                 _searchQuery = "";
