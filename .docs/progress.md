@@ -13,12 +13,11 @@
 | US-002 — Dagdashboard | Dagdoel (Mifflin-St Jeor), profielpagina, voortgangsbalken kcal + macros | Getest, PR gemerged |
 | US-003 — Activiteiten registreren | ActiviteitWizard, MET-berekening, zichtbaar op dashboard | Getest, PR gemerged |
 | UX-BUG-001 — Modal sluit bij tekst selecteren | onmousedown/onmouseup fix in beide wizards | Getest, PR gemerged |
+| UX-004 — Dashboard inklapbaar + activiteiten bovenaan | Home.razor aangepast | Getest, PR gemerged |
 
 ## Lopende onderdelen
 
-| Onderdeel | Status | Volgende stap |
-|----------|--------|---------------|
-| UX-004 — Dashboard inklapbare maaltijdmomenten | In ontwikkeling | Testen in browser, daarna PR naar development |
+_Geen._
 
 ## Nog te doen
 
@@ -33,4 +32,4 @@ _Geen._
 
 ## Volgende logische stap
 
-UX-004 testen in browser aan de hand van de acceptatiescenario's. Na goedkeuring PR aanmaken naar development.
+Keuze maken: US-004 (meldingen) oppakken of verdere UX-verbeteringen doorvoeren.

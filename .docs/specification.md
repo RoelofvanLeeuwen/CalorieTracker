@@ -166,7 +166,7 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ### UX-004 — Dashboard: activiteiten bovenaan, maaltijdmomenten inklapbaar
 
-**Status:** In ontwikkeling
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
 
 **Verhaal:**
 > Als gebruiker wil ik op het dashboard de activiteiten bovenaan zien en de maaltijdmomenten standaard ingeklapt, zodat ik in één oogopslag mijn energiebalans zie en zelf kies welk maaltijdmoment ik uitklapt.
