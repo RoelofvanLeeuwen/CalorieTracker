@@ -1,0 +1,254 @@
+@inject IActivityRepository ActivityRepo
+
+@if (_isOpen)
+{
+    <div class="gc-modal-backdrop" @onclick="Close">
+        <div class="gc-modal" @onclick:stopPropagation>
+
+            <div class="gc-modal-head">
+                <div>
+                    <div class="gc-eyebrow" style="margin-bottom:2px">Activiteit</div>
+                    <strong style="font-size:16px">@_stepTitle</strong>
+                </div>
+                <button class="gc-iconbtn" @onclick="Close" aria-label="Sluiten">
+                    <GcIcon Name="close" Size="18" />
+                </button>
+            </div>
+
+            <div class="gc-modal-body">
+
+                @* ── Stap 1: zoeken ── *@
+                @if (_step == Step.Search)
+                {
+                    <label class="gc-field">
+                        <span>Activiteit</span>
+                        <input type="text"
+                               placeholder="bijv. hardlopen, fietsen…"
+                               @bind="_searchQuery"
+                               @bind:event="oninput"
+                               @bind:after="OnSearchInput"
+                               autofocus />
+                    </label>
+
+                    @if (_suggestions.Count > 0)
+                    {
+                        <ul class="gc-suggest-list">
+                            @foreach (var t in _suggestions)
+                            {
+                                <li @onclick="() => SelectTemplate(t)">
+                                    <strong>@t.Name</strong>
+                                    <span>MET @t.Met.ToString("F1") — schatting op basis van duur en gewicht</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (_searchQuery.Length >= 2)
+                    {
+                        <div class="gc-suggest-empty">
+                            <span>Geen bekende activiteit gevonden voor "<em>@_searchQuery</em>"</span>
+                            <button class="gc-btn gc-btn-primary" style="margin-top:12px"
+                                    @onclick="GoToFreeEntry">
+                                <GcIcon Name="plus" Size="14" /> Vrij invoeren
+                            </button>
+                        </div>
+                    }
+                }
+
+                @* ── Stap 2: details ── *@
+                @if (_step == Step.Details)
+                {
+                    <div class="gc-form">
+                        @if (_selectedTemplate is null)
+                        {
+                            <label class="gc-field">
+                                <span>Naam activiteit</span>
+                                <input type="text" @bind="_name" placeholder="bijv. yoga, zwemmen…" />
+                            </label>
+                        }
+                        else
+                        {
+                            <div class="gc-card" style="padding:14px 16px;background:var(--gc-line-2);">
+                                <strong>@_selectedTemplate.Name</strong>
+                                <span style="display:block;font-size:12.5px;color:var(--gc-ink-3);margin-top:2px">
+                                    MET @_selectedTemplate.Met.ToString("F1") — kcal wordt berekend op basis van duur en gewicht
+                                </span>
+                            </div>
+                        }
+
+                        <label class="gc-field">
+                            <span>Duur (minuten)</span>
+                            <input type="number" @bind="_durationMinutes"
+                                   @bind:after="RecalcKcal"
+                                   min="1" max="600" placeholder="bijv. 30" />
+                        </label>
+
+                        <label class="gc-field">
+                            <span>Verbrande calorieën (kcal)
+                                @if (_selectedTemplate is not null)
+                                {
+                                    <span style="color:var(--gc-ink-3)"> — schatting, pas aan indien nodig</span>
+                                }
+                            </span>
+                            <input type="number" @bind="_kcalBurned" min="1" step="1" placeholder="bijv. 280" />
+                        </label>
+
+                        <div class="gc-form-row">
+                            <label class="gc-field">
+                                <span>Datum</span>
+                                <input type="date"
+                                       value="@_performedAt.ToString("yyyy-MM-dd")"
+                                       @onchange="OnDateChanged" />
+                            </label>
+                            <label class="gc-field">
+                                <span>Tijd</span>
+                                <input type="time"
+                                       value="@_performedAt.ToString("HH:mm")"
+                                       @onchange="OnTimeChanged" />
+                            </label>
+                        </div>
+
+                        @if (_error is not null)
+                        {
+                            <div class="gc-alert">
+                                <GcIcon Name="info" Size="16" />
+                                <div>@_error</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+            </div>
+
+            <div class="gc-modal-foot">
+                @if (_step == Step.Details)
+                {
+                    <button class="gc-btn gc-btn-ghost" @onclick="BackToSearch">Terug</button>
+                }
+                <button class="gc-btn gc-btn-ghost" @onclick="Close">Annuleren</button>
+                @if (_step == Step.Details)
+                {
+                    <button class="gc-btn gc-btn-primary" @onclick="Save"
+                            disabled="@(_kcalBurned <= 0 || _durationMinutes <= 0)">
+                        <GcIcon Name="check" Size="14" /> Opslaan
+                    </button>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnCompleted { get; set; }
+    [Parameter] public decimal UserWeightKg { get; set; } = 70m;
+
+    private enum Step { Search, Details }
+
+    private bool   _isOpen;
+    private Step   _step      = Step.Search;
+    private string _stepTitle = "Activiteit zoeken";
+    private string? _error;
+
+    // Search
+    private string                  _searchQuery = "";
+    private List<ActivityTemplate>  _suggestions = [];
+    private ActivityTemplate?       _selectedTemplate;
+
+    // Details
+    private string   _name            = "";
+    private int      _durationMinutes = 30;
+    private decimal  _kcalBurned;
+    private DateTime _performedAt;
+
+    public void Open(DateOnly forDate)
+    {
+        _isOpen      = true;
+        _performedAt = forDate.ToDateTime(TimeOnly.FromDateTime(DateTime.Now));
+        Reset();
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        _isOpen = false;
+        StateHasChanged();
+    }
+
+    private void Reset()
+    {
+        _step             = Step.Search;
+        _stepTitle        = "Activiteit zoeken";
+        _searchQuery      = "";
+        _suggestions      = [];
+        _selectedTemplate = null;
+        _name             = "";
+        _durationMinutes  = 30;
+        _kcalBurned       = 0;
+        _error            = null;
+    }
+
+    private void OnSearchInput()
+    {
+        _suggestions = _searchQuery.Length >= 2
+            ? ActivityTemplates.Search(_searchQuery).ToList()
+            : [];
+    }
+
+    private void SelectTemplate(ActivityTemplate template)
+    {
+        _selectedTemplate = template;
+        _name             = template.Name;
+        _step             = Step.Details;
+        _stepTitle        = "Details";
+        RecalcKcal();
+        StateHasChanged();
+    }
+
+    private void GoToFreeEntry()
+    {
+        _selectedTemplate = null;
+        _name             = _searchQuery;
+        _step             = Step.Details;
+        _stepTitle        = "Details";
+        _kcalBurned       = 0;
+        StateHasChanged();
+    }
+
+    private void BackToSearch()
+    {
+        _step      = Step.Search;
+        _stepTitle = "Activiteit zoeken";
+        StateHasChanged();
+    }
+
+    private void RecalcKcal()
+    {
+        if (_selectedTemplate is not null && _durationMinutes > 0 && UserWeightKg > 0)
+            _kcalBurned = ActivityTemplates.CalculateKcal(_selectedTemplate.Met, UserWeightKg, _durationMinutes);
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+        var name = _selectedTemplate?.Name ?? _name.Trim();
+        if (string.IsNullOrWhiteSpace(name))   { _error = "Vul een naam in.";               return; }
+        if (_durationMinutes <= 0)             { _error = "Vul een geldige duur in.";        return; }
+        if (_kcalBurned <= 0)                  { _error = "Vul de verbrande calorieën in.";  return; }
+
+        await ActivityRepo.AddAsync(new AddActivityDto(name, _durationMinutes, _kcalBurned, _performedAt));
+        Close();
+        await OnCompleted.InvokeAsync();
+    }
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", out var d))
+            _performedAt = d.ToDateTime(TimeOnly.FromTimeSpan(_performedAt.TimeOfDay));
+    }
+
+    private void OnTimeChanged(ChangeEventArgs e)
+    {
+        if (TimeOnly.TryParseExact(e.Value?.ToString(), "HH:mm", out var t))
+            _performedAt = DateOnly.FromDateTime(_performedAt).ToDateTime(t);
+    }
+}
