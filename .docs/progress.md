@@ -16,10 +16,14 @@
 
 ## Fase 2 — Scope en US-001
 
-- [ ] Applicatiescope vastgelegd in specification.md
-- [ ] US-001 voorgesteld en verfijnd
-- [ ] Featurebranch `feature/US-001-*` aangemaakt na akkoord
-- [ ] US-001 geïmplementeerd en getest
+- [x] Applicatiescope vastgelegd in specification.md
+- [x] US-001 voorgesteld en verfijnd (per-100g macros, datum/tijd aanpasbaar, varianten als aparte producten)
+- [x] Featurebranch `feature/US-001-consumptie-invoeren` aangemaakt
+- [x] US-001 geïmplementeerd (Domain / Application / Infrastructure / Web)
+- [x] EF Core InitialCreate migratie aangemaakt
+- [x] Build: 0 errors, 0 warnings
+- [ ] US-001 getest in browser
+- [ ] Pull request naar development
 
 ## Openstaande vragen
 

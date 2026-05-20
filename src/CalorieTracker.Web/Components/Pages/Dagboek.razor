@@ -1,0 +1,150 @@
+@page "/dagboek"
+@inject IConsumptionEntryRepository ConsumptionRepo
+
+<PageTitle>Dagboek — CalorieTracker</PageTitle>
+
+<div class="gc-pageheader">
+    <div>
+        <div class="gc-eyebrow">Dagboek</div>
+        <h1 class="gc-h1">@_date.ToString("dddd d MMMM yyyy", _nl)</h1>
+        @if (_dayLog is not null)
+        {
+            <p class="gc-sub">
+                @_dayLog.TotalKcal.ToString("F0") kcal &nbsp;·&nbsp;
+                @_dayLog.TotalCarbs.ToString("F1") g koolh. &nbsp;·&nbsp;
+                @_dayLog.TotalFat.ToString("F1") g vet &nbsp;·&nbsp;
+                @_dayLog.TotalProtein.ToString("F1") g eiwit
+            </p>
+        }
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+        <button class="gc-btn gc-btn-ghost" @onclick="PreviousDay" aria-label="Vorige dag">‹</button>
+        <input type="date"
+               class="gc-date-input"
+               value="@_date.ToString("yyyy-MM-dd")"
+               @onchange="OnDateChanged"
+               aria-label="Selecteer datum" />
+        <button class="gc-btn gc-btn-ghost" @onclick="NextDay" aria-label="Volgende dag">›</button>
+    </div>
+</div>
+
+@if (_dayLog is not null)
+{
+    @foreach (var mm in _dayLog.MealMoments)
+    {
+        <section class="gc-meal-section">
+            <div class="gc-meal-header">
+                <div class="gc-meal-header-left">
+                    <span class="gc-meal-title">@mm.Label</span>
+                    @if (mm.Entries.Count > 0)
+                    {
+                        <span class="gc-meal-kcal">@mm.TotalKcal.ToString("F0") kcal</span>
+                    }
+                </div>
+                <button class="gc-btn gc-btn-ghost gc-btn-sm"
+                        @onclick="() => OpenWizard(mm.MealMoment)">
+                    <GcIcon Name="plus" Size="14" /> Toevoegen
+                </button>
+            </div>
+
+            @if (mm.Entries.Count > 0)
+            {
+                <div class="gc-card" style="margin-top: 8px;">
+                    <table class="gc-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Hoeveelheid</th>
+                                <th>Tijd</th>
+                                <th class="gc-col-num">kcal</th>
+                                <th class="gc-col-num gc-col-macro">Koolh.</th>
+                                <th class="gc-col-num gc-col-macro">Vet</th>
+                                <th class="gc-col-num gc-col-macro">Eiwit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in mm.Entries)
+                            {
+                                <tr>
+                                    <td>@entry.Product.Name</td>
+                                    <td>@FormatQuantity(entry)</td>
+                                    <td>@entry.ConsumedAt.ToString("HH:mm")</td>
+                                    <td class="gc-col-num">@entry.TotalKcal.ToString("F0")</td>
+                                    <td class="gc-col-num gc-col-macro">@entry.TotalCarbs.ToString("F1") g</td>
+                                    <td class="gc-col-num gc-col-macro">@entry.TotalFat.ToString("F1") g</td>
+                                    <td class="gc-col-num gc-col-macro">@entry.TotalProtein.ToString("F1") g</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+
+    @if (_dayLog.TotalKcal > 0)
+    {
+        <div class="gc-day-total">
+            <span class="gc-day-total-label">Dagtotaal</span>
+            <span class="gc-day-total-value">@_dayLog.TotalKcal.ToString("F0") kcal</span>
+            <span class="gc-day-total-macro">@_dayLog.TotalCarbs.ToString("F1") g koolh.</span>
+            <span class="gc-day-total-macro">@_dayLog.TotalFat.ToString("F1") g vet</span>
+            <span class="gc-day-total-macro">@_dayLog.TotalProtein.ToString("F1") g eiwit</span>
+        </div>
+    }
+}
+
+<ConsumptieWizard @ref="_wizard" OnCompleted="LoadDayLog" />
+
+@code {
+    private static readonly System.Globalization.CultureInfo _nl = new("nl-NL");
+
+    private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
+    private DayLogDto? _dayLog;
+    private ConsumptieWizard _wizard = null!;
+
+    protected override async Task OnInitializedAsync() => await LoadDayLog();
+
+    private async Task LoadDayLog()
+    {
+        _dayLog = await ConsumptionRepo.GetDayLogAsync(_date);
+        StateHasChanged();
+    }
+
+    private async Task PreviousDay()
+    {
+        _date = _date.AddDays(-1);
+        await LoadDayLog();
+    }
+
+    private async Task NextDay()
+    {
+        _date = _date.AddDays(1);
+        await LoadDayLog();
+    }
+
+    private async Task OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", out var d))
+        {
+            _date = d;
+            await LoadDayLog();
+        }
+    }
+
+    private void OpenWizard(MealMomentDto mealMoment) =>
+        _wizard.Open(mealMoment, _date);
+
+    private static string FormatQuantity(ConsumptionEntryDto entry)
+    {
+        if (entry.Product.DefaultUnit == UnitTypeDto.Piece)
+        {
+            var label = entry.Product.UnitLabel ?? "stuk";
+            var count = entry.Quantity % 1 == 0
+                ? ((int)entry.Quantity).ToString()
+                : entry.Quantity.ToString("F1");
+            return $"{count} {label} ({entry.TotalGrams:F0} g)";
+        }
+        return $"{entry.Quantity:F0} g";
+    }
+}
