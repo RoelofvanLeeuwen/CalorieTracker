@@ -25,9 +25,19 @@
 - [x] US-001 getest in browser — werkt correct
 - [x] Pull request naar development
 
+## Fase 3 — US-002
+
+- [ ] Featurebranch `feature/US-002-dagdashboard` aanmaken
+- [ ] UserProfile entity + enums (MacroProfile, ActivityLevel, GoalType)
+- [ ] DailyGoalCalculator service (Mifflin-St Jeor)
+- [ ] Profielpagina `/profiel`
+- [ ] Dashboard op `/` (voortgangsbalken kcal + macros, maaltijdmomenten)
+- [ ] EF migratie
+- [ ] Testen + PR naar development
+
 ## Openstaande vragen
 
-- Applicatiescope nog niet vastgelegd (volgt na initiële setup)
+_Geen._
 
 ## User stories
 

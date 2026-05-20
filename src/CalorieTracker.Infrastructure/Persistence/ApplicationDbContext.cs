@@ -7,6 +7,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Product>          Products          => Set<Product>();
     public DbSet<ConsumptionEntry> ConsumptionEntries => Set<ConsumptionEntry>();
+    public DbSet<UserProfile>      UserProfiles       => Set<UserProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

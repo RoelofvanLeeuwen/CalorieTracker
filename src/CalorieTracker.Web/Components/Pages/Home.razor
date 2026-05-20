@@ -1,68 +1,187 @@
 @page "/"
+@inject IUserProfileRepository ProfileRepo
+@inject IConsumptionEntryRepository ConsumptionRepo
+@inject NavigationManager Nav
 
-<PageTitle>Home — CalorieTracker</PageTitle>
+<PageTitle>Dashboard — CalorieTracker</PageTitle>
 
-<div class="gc-pageheader">
-    <div>
-        <div class="gc-eyebrow">Dashboard</div>
-        <h1 class="gc-h1">Welkom bij CalorieTracker</h1>
-        <p class="gc-sub">De applicatie is klaar voor de eerste user story.</p>
-    </div>
-</div>
+@if (_loading)
+{
+    <div style="padding: 40px; text-align: center; color: var(--gc-ink-3);">Laden…</div>
+}
+else if (_profile is null)
+{
+    @* Redirect handled in OnInitializedAsync; show nothing while navigating *@
+}
+else
+{
+    var goal = DailyGoalCalculator.Calculate(_profile);
+    var eaten    = _dayLog?.TotalKcal    ?? 0m;
+    var remaining = goal.TotalKcal - eaten;
+    var isOver    = eaten > goal.TotalKcal;
+    var kcalPct   = goal.TotalKcal > 0 ? (double)(eaten / goal.TotalKcal) * 100.0 : 0;
 
-<div class="gc-grid gc-grid-3">
-    <div class="gc-stat">
-        <div class="gc-stat-label">Calorieën vandaag</div>
-        <div class="gc-stat-value">—</div>
-        <div class="gc-stat-delta">Nog geen gegevens</div>
+    <div class="gc-pageheader">
+        <div>
+            <div class="gc-eyebrow">Dashboard</div>
+            <h1 class="gc-h1">@_today.ToString("dddd d MMMM", _nl)</h1>
+        </div>
+        <a class="gc-btn gc-btn-ghost gc-btn-sm" href="/dagboek">Naar dagboek</a>
     </div>
-    <div class="gc-stat">
-        <div class="gc-stat-label">Dagdoel</div>
-        <div class="gc-stat-value">—</div>
-        <div class="gc-stat-delta">Nog niet ingesteld</div>
-    </div>
-    <div class="gc-stat">
-        <div class="gc-stat-label">Ingevoerde producten</div>
-        <div class="gc-stat-value">—</div>
-        <div class="gc-stat-delta">Nog geen invoer</div>
-    </div>
-</div>
 
-<div class="gc-grid gc-grid-2" style="margin-top: 24px;">
-    <div class="gc-card">
-        <div class="gc-card-head">
+    @* ── Kcal voortgang ── *@
+    <div class="gc-dashboard-goal">
+        <div class="gc-goal-head">
             <div>
-                <div class="gc-card-title">Technische basis</div>
-                <div class="gc-card-sub">Initiële setup voltooid</div>
-            </div>
-        </div>
-        <div class="gc-card-body">
-            <ul style="margin: 0; padding: 0 0 0 18px; color: var(--gc-ink-2); font-size: 14px; line-height: 1.8;">
-                <li>.NET 10 · Blazor Interactive Server</li>
-                <li>Clean Architecture (Domain / Application / Infrastructure / Web)</li>
-                <li>GC design system — Manrope · magenta accent</li>
-                <li>EF Core 10 + SQLite (klaar voor configuratie)</li>
-            </ul>
-        </div>
-    </div>
-    <div class="gc-card">
-        <div class="gc-card-head">
-            <div>
-                <div class="gc-card-title">Volgende stap</div>
-                <div class="gc-card-sub">Scope en US-001</div>
-            </div>
-        </div>
-        <div class="gc-card-body">
-            <div class="gc-alert">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px">
-                    <circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>
-                </svg>
-                <div>
-                    Leg de applicatiescope vast in <code>specification.md</code>,
-                    bespreek en verfijn daarna US-001, en maak een featurebranch aan na akkoord.
+                <div class="gc-goal-label">Calorieën</div>
+                <div class="gc-goal-eaten">
+                    @eaten.ToString("F0")
+                    <span> / @goal.TotalKcal.ToString("F0") kcal</span>
                 </div>
             </div>
+            <div class="gc-goal-remaining @(isOver ? "is-over" : "")">
+                @if (isOver)
+                {
+                    <span>@(eaten - goal.TotalKcal).ToString("F0") kcal over doel</span>
+                }
+                else
+                {
+                    <span>@remaining.ToString("F0") kcal resterend</span>
+                }
+            </div>
+        </div>
+        <div class="gc-progress">
+            <div class="gc-progress-fill @(isOver ? "is-over" : "")"
+                 style="width: @(Math.Min(kcalPct, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
         </div>
     </div>
-</div>
+
+    @* ── Macro voortgang ── *@
+    <div class="gc-macro-grid">
+        @{
+            var carbsEaten   = _dayLog?.TotalCarbs   ?? 0m;
+            var fatEaten     = _dayLog?.TotalFat     ?? 0m;
+            var proteinEaten = _dayLog?.TotalProtein ?? 0m;
+            var carbsPct     = goal.CarbsGrams   > 0 ? Math.Min((double)(carbsEaten   / goal.CarbsGrams)   * 100.0, 100) : 0;
+            var fatPct       = goal.FatGrams     > 0 ? Math.Min((double)(fatEaten     / goal.FatGrams)     * 100.0, 100) : 0;
+            var proteinPct   = goal.ProteinGrams > 0 ? Math.Min((double)(proteinEaten / goal.ProteinGrams) * 100.0, 100) : 0;
+        }
+        <div class="gc-macro-card">
+            <div class="gc-macro-card-label">Koolhydraten</div>
+            <div class="gc-macro-card-values">
+                <span class="gc-macro-card-eaten">@carbsEaten.ToString("F0") g</span>
+                <span class="gc-macro-card-goal">/ @goal.CarbsGrams.ToString("F0") g</span>
+            </div>
+            <div class="gc-macro-bar">
+                <div class="gc-macro-fill carbs"
+                     style="width: @carbsPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+            </div>
+        </div>
+        <div class="gc-macro-card">
+            <div class="gc-macro-card-label">Vetten</div>
+            <div class="gc-macro-card-values">
+                <span class="gc-macro-card-eaten">@fatEaten.ToString("F0") g</span>
+                <span class="gc-macro-card-goal">/ @goal.FatGrams.ToString("F0") g</span>
+            </div>
+            <div class="gc-macro-bar">
+                <div class="gc-macro-fill fat"
+                     style="width: @fatPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+            </div>
+        </div>
+        <div class="gc-macro-card">
+            <div class="gc-macro-card-label">Eiwitten</div>
+            <div class="gc-macro-card-values">
+                <span class="gc-macro-card-eaten">@proteinEaten.ToString("F0") g</span>
+                <span class="gc-macro-card-goal">/ @goal.ProteinGrams.ToString("F0") g</span>
+            </div>
+            <div class="gc-macro-bar">
+                <div class="gc-macro-fill protein"
+                     style="width: @proteinPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+            </div>
+        </div>
+    </div>
+
+    @* ── Maaltijdmomenten ── *@
+    @if (_dayLog is not null)
+    {
+        @foreach (var mm in _dayLog.MealMoments)
+        {
+            <section class="gc-meal-section">
+                <div class="gc-meal-header">
+                    <div class="gc-meal-header-left">
+                        <span class="gc-meal-title">@mm.Label</span>
+                        @if (mm.TotalKcal > 0)
+                        {
+                            <span class="gc-meal-kcal">@mm.TotalKcal.ToString("F0") kcal</span>
+                        }
+                    </div>
+                    <button class="gc-btn gc-btn-ghost gc-btn-sm"
+                            @onclick="() => OpenWizard(mm.MealMoment)">
+                        <GcIcon Name="plus" Size="14" /> Toevoegen
+                    </button>
+                </div>
+                @if (mm.Entries.Count > 0)
+                {
+                    <div class="gc-card" style="margin-top: 8px;">
+                        <table class="gc-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="gc-col-num">kcal</th>
+                                    <th class="gc-col-num gc-col-macro">Koolh.</th>
+                                    <th class="gc-col-num gc-col-macro">Vet</th>
+                                    <th class="gc-col-num gc-col-macro">Eiwit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in mm.Entries)
+                                {
+                                    <tr>
+                                        <td>@entry.Product.Name</td>
+                                        <td class="gc-col-num">@entry.TotalKcal.ToString("F0")</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalCarbs.ToString("F1") g</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalFat.ToString("F1") g</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalProtein.ToString("F1") g</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+    }
+
+    <ConsumptieWizard @ref="_wizard" OnCompleted="LoadDayLog" />
+}
+
+@code {
+    private static readonly System.Globalization.CultureInfo _nl = new("nl-NL");
+
+    private DateOnly       _today = DateOnly.FromDateTime(DateTime.Today);
+    private UserProfileDto? _profile;
+    private DayLogDto?      _dayLog;
+    private ConsumptieWizard _wizard = null!;
+    private bool            _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profile = await ProfileRepo.GetAsync();
+        if (_profile is null)
+        {
+            Nav.NavigateTo("/profiel");
+            return;
+        }
+        await LoadDayLog();
+        _loading = false;
+    }
+
+    private async Task LoadDayLog()
+    {
+        _dayLog = await ConsumptionRepo.GetDayLogAsync(_today);
+        StateHasChanged();
+    }
+
+    private void OpenWizard(MealMomentDto mealMoment) =>
+        _wizard.Open(mealMoment, _today);
+}

@@ -80,9 +80,63 @@ Consument (enkelvoudig, geen login/authenticatie vereist in de initiële scope).
 
 ---
 
-### US-002 t/m US-004
+### US-002 — Dagdashboard met berekend dagdoel
 
-_Volgen na akkoord en implementatie van US-001._
+**Status:** Goedgekeurd — klaar voor implementatie
+
+**Verhaal:**
+> Als gebruiker wil ik een dagdashboard zien op de home-pagina met mijn voortgang richting een berekend kcal- en macrodoel, zodat ik in één oogopslag zie hoe mijn dag er voedingstechnisch uitziet.
+
+**Verfijningen (vastgelegd na bespreking):**
+- Dagdoel wordt berekend op basis van profiel (Mifflin-St Jeor + activiteitsfactor + doelstelling), niet handmatig ingesteld.
+- Macroprofiel kiest de gebruiker uit 5 vaste profielen met uitleg (zie onder).
+- Eén gebruikersprofiel (single-user).
+- Dashboard vervangt de huidige home-pagina (`/`).
+
+**Macropropfielen:**
+
+| Profiel | Koolh. | Vet | Eiwit | Wanneer? |
+|---|---|---|---|---|
+| Gebalanceerd | 50% | 25% | 25% | Gezonde basis voor de meeste mensen |
+| Sportief | 55% | 20% | 25% | Regelmatig sporten, extra koolhydraten als brandstof |
+| Hoog eiwit | 30% | 25% | 45% | Krachttraining, spierbehoud bij gewichtsafname |
+| Low-carb | 20% | 45% | 35% | Stabiel bloedsuiker, gewichtsafname |
+| Keto | 5% | 70% | 25% | Strikt ketogeen, medische/speciale doeleinden |
+
+**Profiel instellen (`/profiel`):**
+- Gewicht (kg), lengte (cm), leeftijd, geslacht
+- Activiteitsniveau: Zittend / Licht actief / Matig actief / Actief / Zeer actief
+- Doelstelling: Afvallen (−500 kcal) / Gewicht houden / Aankomen (+300 kcal)
+- Macroprofiel (keuze uit 5 opties met uitleg)
+
+**Dashboard (`/`):**
+- Kcal-voortgangsbalk: gegeten / doel / resterend
+- Drie macrobalkjes: koolhydraten / vetten / eiwitten (gegeten vs. doel in grammen)
+- Opsplitsing per maaltijdmoment (subtotaal kcal + knop "Toevoegen")
+
+**Domein (nieuw):**
+- `UserProfile`: gewicht, lengte, leeftijd, geslacht, activiteitsniveau, doelstelling, macroprofiel
+- `MacroProfile` (enum): Balanced / Athletic / HighProtein / LowCarb / Keto
+- `ActivityLevel` (enum): Sedentary / Light / Moderate / Active / VeryActive
+- `GoalType` (enum): Lose / Maintain / Gain
+- `DailyGoal`: berekende waarde (niet opgeslagen) via BMR × activiteitsfactor ± doelstelling
+
+**Acceptatiescenario's:**
+1. Nieuw profiel: ik vul mijn gegevens in → systeem berekent en toont mijn dagdoel op het dashboard.
+2. Dashboard toont voortgangsbalk kcal met correct gegeten/resterend/doel.
+3. Macrobalkjes tonen grammen gegeten vs. berekend doel per macro.
+4. Per maaltijdmoment zie ik het subtotaal en een knop om direct te kunnen invoeren.
+5. Als er geen profiel is ingesteld, word ik doorgestuurd naar `/profiel`.
+
+**Buiten scope voor US-002:**
+- Activiteiten (US-003) — activiteitsniveau is statisch in het profiel, geen dagelijkse sportregistratie
+- Meldingen (US-004)
+
+---
+
+### US-003 t/m US-004
+
+_Volgen na akkoord en implementatie van US-002._
 
 ## Toekomstige scope
 
