@@ -102,57 +102,6 @@ else
         </div>
     </div>
 
-    @* ── Maaltijdmomenten ── *@
-    @if (_dayLog is not null)
-    {
-        @foreach (var mm in _dayLog.MealMoments)
-        {
-            <section class="gc-meal-section">
-                <div class="gc-meal-header">
-                    <div class="gc-meal-header-left">
-                        <span class="gc-meal-title">@mm.Label</span>
-                        @if (mm.TotalKcal > 0)
-                        {
-                            <span class="gc-meal-kcal">@mm.TotalKcal.ToString("F0") kcal</span>
-                        }
-                    </div>
-                    <button class="gc-btn gc-btn-ghost gc-btn-sm"
-                            @onclick="() => OpenConsumptieWizard(mm.MealMoment)">
-                        <GcIcon Name="plus" Size="14" /> Toevoegen
-                    </button>
-                </div>
-                @if (mm.Entries.Count > 0)
-                {
-                    <div class="gc-card" style="margin-top: 8px;">
-                        <table class="gc-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th class="gc-col-num">kcal</th>
-                                    <th class="gc-col-num gc-col-macro">Koolh.</th>
-                                    <th class="gc-col-num gc-col-macro">Vet</th>
-                                    <th class="gc-col-num gc-col-macro">Eiwit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var entry in mm.Entries)
-                                {
-                                    <tr>
-                                        <td>@entry.Product.Name</td>
-                                        <td class="gc-col-num">@entry.TotalKcal.ToString("F0")</td>
-                                        <td class="gc-col-num gc-col-macro">@entry.TotalCarbs.ToString("F1") g</td>
-                                        <td class="gc-col-num gc-col-macro">@entry.TotalFat.ToString("F1") g</td>
-                                        <td class="gc-col-num gc-col-macro">@entry.TotalProtein.ToString("F1") g</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            </section>
-        }
-    }
-
     @* ── Activiteiten ── *@
     <section class="gc-meal-section">
         <div class="gc-meal-header">
@@ -197,6 +146,64 @@ else
         }
     </section>
 
+    @* ── Maaltijdmomenten ── *@
+    @if (_dayLog is not null)
+    {
+        @foreach (var mm in _dayLog.MealMoments)
+        {
+            var isExpanded = _expanded.Contains(mm.MealMoment);
+            <section class="gc-meal-section">
+                <div class="gc-meal-header">
+                    <div class="gc-meal-header-left"
+                         style="cursor: pointer; user-select: none;"
+                         @onclick="() => ToggleMealMoment(mm.MealMoment)">
+                        <span style="display:inline-flex;align-items:center;transition:transform 0.2s;transform:@(isExpanded ? "rotate(0deg)" : "rotate(-90deg)")">
+                            <GcIcon Name="chevron" Size="16" />
+                        </span>
+                        <span class="gc-meal-title">@mm.Label</span>
+                        @if (mm.TotalKcal > 0)
+                        {
+                            <span class="gc-meal-kcal">@mm.TotalKcal.ToString("F0") kcal</span>
+                        }
+                    </div>
+                    <button class="gc-btn gc-btn-ghost gc-btn-sm"
+                            @onclick="() => OpenConsumptieWizard(mm.MealMoment)"
+                            @onclick:stopPropagation>
+                        <GcIcon Name="plus" Size="14" /> Toevoegen
+                    </button>
+                </div>
+                @if (isExpanded && mm.Entries.Count > 0)
+                {
+                    <div class="gc-card" style="margin-top: 8px;">
+                        <table class="gc-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="gc-col-num">kcal</th>
+                                    <th class="gc-col-num gc-col-macro">Koolh.</th>
+                                    <th class="gc-col-num gc-col-macro">Vet</th>
+                                    <th class="gc-col-num gc-col-macro">Eiwit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in mm.Entries)
+                                {
+                                    <tr>
+                                        <td>@entry.Product.Name</td>
+                                        <td class="gc-col-num">@entry.TotalKcal.ToString("F0")</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalCarbs.ToString("F1") g</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalFat.ToString("F1") g</td>
+                                        <td class="gc-col-num gc-col-macro">@entry.TotalProtein.ToString("F1") g</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+    }
+
     <ConsumptieWizard  @ref="_consumptieWizard"  OnCompleted="LoadDayLog" />
     <ActiviteitWizard  @ref="_activiteitWizard"  OnCompleted="LoadDayLog"
                        UserWeightKg="@(_profile.WeightKg)" />
@@ -209,9 +216,10 @@ else
     private UserProfileDto?     _profile;
     private DayLogDto?          _dayLog;
     private DayActivityLogDto?  _dayActivityLog;
-    private ConsumptieWizard    _consumptieWizard = null!;
-    private ActiviteitWizard    _activiteitWizard = null!;
-    private bool                _loading = true;
+    private ConsumptieWizard          _consumptieWizard = null!;
+    private ActiviteitWizard          _activiteitWizard = null!;
+    private bool                      _loading = true;
+    private HashSet<MealMomentDto>    _expanded = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,6 +238,12 @@ else
         _dayLog         = await ConsumptionRepo.GetDayLogAsync(_today);
         _dayActivityLog = await ActivityRepo.GetDayLogAsync(_today);
         StateHasChanged();
+    }
+
+    private void ToggleMealMoment(MealMomentDto mm)
+    {
+        if (!_expanded.Add(mm))
+            _expanded.Remove(mm);
     }
 
     private void OpenConsumptieWizard(MealMomentDto mealMoment) =>
