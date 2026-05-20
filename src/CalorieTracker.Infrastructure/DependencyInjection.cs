@@ -1,3 +1,7 @@
+using CalorieTracker.Application.Interfaces;
+using CalorieTracker.Infrastructure.Persistence;
+using CalorieTracker.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +13,12 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddScoped<IProductRepository,          ProductRepository>();
+        services.AddScoped<IConsumptionEntryRepository, ConsumptionEntryRepository>();
+
         return services;
     }
 }

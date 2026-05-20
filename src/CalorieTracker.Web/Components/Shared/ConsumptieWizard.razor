@@ -1,0 +1,386 @@
+@inject IProductRepository ProductRepo
+@inject IConsumptionEntryRepository ConsumptionRepo
+
+@if (_isOpen)
+{
+    <div class="gc-modal-backdrop" @onclick="Close">
+        <div class="gc-modal" @onclick:stopPropagation>
+
+            <div class="gc-modal-head">
+                <div>
+                    <div class="gc-eyebrow" style="margin-bottom:2px">@_mealLabel</div>
+                    <strong style="font-size:16px">@_stepTitle</strong>
+                </div>
+                <button class="gc-iconbtn" @onclick="Close" aria-label="Sluiten">
+                    <GcIcon Name="close" Size="18" />
+                </button>
+            </div>
+
+            <div class="gc-modal-body">
+
+                @* ── Stap 1: product zoeken ── *@
+                @if (_step == Step.Search)
+                {
+                    <label class="gc-field">
+                        <span>Productnaam</span>
+                        <input type="text"
+                               placeholder="bijv. witte boterham"
+                               @bind="_searchQuery"
+                               @bind:event="oninput"
+                               @bind:after="OnSearchInput"
+                               autofocus />
+                    </label>
+
+                    @if (_suggestions.Count > 0)
+                    {
+                        <ul class="gc-suggest-list">
+                            @foreach (var p in _suggestions)
+                            {
+                                <li @onclick="() => SelectProduct(p)">
+                                    <strong>@p.Name</strong>
+                                    <span>@p.KcalPer100g.ToString("F0") kcal/100g &nbsp;·&nbsp; @p.DefaultUnit.GetLabel()</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (_searchQuery.Length >= 2 && !_searching)
+                    {
+                        <div class="gc-suggest-empty">
+                            <span>Geen resultaten voor "<em>@_searchQuery</em>"</span>
+                            <button class="gc-btn gc-btn-primary" style="margin-top:12px"
+                                    @onclick="GoToCreate">
+                                <GcIcon Name="plus" Size="14" /> Nieuw product aanmaken
+                            </button>
+                        </div>
+                    }
+                }
+
+                @* ── Stap 2: nieuw product aanmaken ── *@
+                @if (_step == Step.Create)
+                {
+                    <div class="gc-form">
+                        <label class="gc-field">
+                            <span>Productnaam</span>
+                            <input type="text" @bind="_newName" placeholder="bijv. witte boterham" />
+                        </label>
+
+                        <div>
+                            <div class="gc-field-label" style="font-size:13px;font-weight:600;color:var(--gc-ink-2);margin-bottom:8px">Eenheidstype</div>
+                            <div class="gc-radiolist">
+                                <label class="gc-radio @(_newUnitType == UnitTypeDto.Gram ? "is-checked" : "")"
+                                       @onclick="() => _newUnitType = UnitTypeDto.Gram">
+                                    <span class="gc-radio-dot"><i></i></span>
+                                    <span><b>Grammen</b><em>Invoer in grammen (bijv. 150 g kaas)</em></span>
+                                </label>
+                                <label class="gc-radio @(_newUnitType == UnitTypeDto.Piece ? "is-checked" : "")"
+                                       @onclick="() => _newUnitType = UnitTypeDto.Piece">
+                                    <span class="gc-radio-dot"><i></i></span>
+                                    <span><b>Eenheden</b><em>Invoer per stuk, snee, plak… (bijv. 2 sneetjes)</em></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        @if (_newUnitType == UnitTypeDto.Piece)
+                        {
+                            <div class="gc-form-row">
+                                <label class="gc-field">
+                                    <span>Eenheidsnaam</span>
+                                    <input type="text" @bind="_newUnitLabel" placeholder="bijv. snee, plak, beker" />
+                                </label>
+                                <label class="gc-field">
+                                    <span>Gewicht per eenheid (g)</span>
+                                    <input type="number" @bind="_newGramsPerUnit" min="0.1" step="0.1" placeholder="bijv. 40" />
+                                </label>
+                            </div>
+                        }
+
+                        <div style="font-size:12px;font-weight:700;color:var(--gc-primary);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">
+                            Voedingswaarden per 100 g
+                        </div>
+                        <div class="gc-form-row">
+                            <label class="gc-field">
+                                <span>kcal</span>
+                                <input type="number" @bind="_newKcal" min="0" step="0.1" placeholder="bijv. 250" />
+                            </label>
+                            <label class="gc-field">
+                                <span>Koolhydraten (g)</span>
+                                <input type="number" @bind="_newCarbs" min="0" step="0.1" placeholder="bijv. 47" />
+                            </label>
+                        </div>
+                        <div class="gc-form-row">
+                            <label class="gc-field">
+                                <span>Vetten (g)</span>
+                                <input type="number" @bind="_newFat" min="0" step="0.1" placeholder="bijv. 3" />
+                            </label>
+                            <label class="gc-field">
+                                <span>Eiwitten (g)</span>
+                                <input type="number" @bind="_newProtein" min="0" step="0.1" placeholder="bijv. 9" />
+                            </label>
+                        </div>
+
+                        @if (_createError is not null)
+                        {
+                            <div class="gc-alert">
+                                <GcIcon Name="info" Size="16" />
+                                <div>@_createError</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* ── Stap 3: hoeveelheid en tijdstip ── *@
+                @if (_step == Step.Quantity)
+                {
+                    <div class="gc-form">
+                        <div class="gc-card" style="padding:14px 16px;background:var(--gc-line-2);">
+                            <strong>@_selectedProduct!.Name</strong>
+                            <span style="display:block;font-size:12.5px;color:var(--gc-ink-3);margin-top:2px">
+                                @_selectedProduct.KcalPer100g.ToString("F0") kcal/100g &nbsp;·&nbsp;
+                                koolh. @_selectedProduct.CarbsPer100g.ToString("F1") g &nbsp;·&nbsp;
+                                vet @_selectedProduct.FatPer100g.ToString("F1") g &nbsp;·&nbsp;
+                                eiwit @_selectedProduct.ProteinPer100g.ToString("F1") g
+                            </span>
+                        </div>
+
+                        <label class="gc-field">
+                            <span>
+                                Hoeveelheid
+                                @if (_selectedProduct.DefaultUnit == UnitTypeDto.Piece)
+                                {
+                                    <span style="color:var(--gc-ink-3)"> (@(_selectedProduct.UnitLabel ?? "stuk"))</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--gc-ink-3)"> (gram)</span>
+                                }
+                            </span>
+                            <input type="number" @bind="_quantity" min="0.1" step="0.1"
+                                   placeholder="@(_selectedProduct.DefaultUnit == UnitTypeDto.Piece ? "bijv. 2" : "bijv. 150")" />
+                        </label>
+
+                        @if (_quantity > 0 && _selectedProduct is not null)
+                        {
+                            <div style="font-size:13px;color:var(--gc-ink-3);margin-top:-6px">
+                                ≈ @CalculateKcal().ToString("F0") kcal
+                            </div>
+                        }
+
+                        <div class="gc-form-row">
+                            <label class="gc-field">
+                                <span>Datum</span>
+                                <input type="date"
+                                       value="@_consumedAt.ToString("yyyy-MM-dd")"
+                                       @onchange="OnConsumedDateChanged" />
+                            </label>
+                            <label class="gc-field">
+                                <span>Tijd</span>
+                                <input type="time"
+                                       value="@_consumedAt.ToString("HH:mm")"
+                                       @onchange="OnConsumedTimeChanged" />
+                            </label>
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+            <div class="gc-modal-foot">
+                @if (_step == Step.Create)
+                {
+                    <button class="gc-btn gc-btn-ghost" @onclick="BackToSearch">Terug</button>
+                }
+                @if (_step == Step.Quantity)
+                {
+                    <button class="gc-btn gc-btn-ghost" @onclick="BackToSearch">Terug</button>
+                }
+                <button class="gc-btn gc-btn-ghost" @onclick="Close">Annuleren</button>
+                @if (_step == Step.Search) { }
+                @if (_step == Step.Create)
+                {
+                    <button class="gc-btn gc-btn-primary" @onclick="SaveProduct">
+                        Volgende
+                    </button>
+                }
+                @if (_step == Step.Quantity)
+                {
+                    <button class="gc-btn gc-btn-primary" @onclick="SaveConsumption" disabled="@(_quantity <= 0)">
+                        <GcIcon Name="check" Size="14" /> Opslaan
+                    </button>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnCompleted { get; set; }
+
+    private enum Step { Search, Create, Quantity }
+
+    private bool          _isOpen;
+    private Step          _step = Step.Search;
+    private MealMomentDto _mealMoment;
+    private DateOnly      _forDate;
+    private string        _mealLabel  = "";
+    private string        _stepTitle  = "";
+
+    // Search
+    private string                 _searchQuery = "";
+    private List<ProductDto>       _suggestions = [];
+    private bool                   _searching;
+
+    // Create
+    private string      _newName        = "";
+    private UnitTypeDto _newUnitType    = UnitTypeDto.Gram;
+    private string      _newUnitLabel   = "";
+    private decimal?    _newGramsPerUnit;
+    private decimal     _newKcal;
+    private decimal     _newCarbs;
+    private decimal     _newFat;
+    private decimal     _newProtein;
+    private string?     _createError;
+
+    // Quantity
+    private ProductDto? _selectedProduct;
+    private decimal     _quantity;
+    private DateTime    _consumedAt;
+
+    public void Open(MealMomentDto mealMoment, DateOnly forDate)
+    {
+        _isOpen      = true;
+        _mealMoment  = mealMoment;
+        _forDate     = forDate;
+        _consumedAt  = forDate.ToDateTime(TimeOnly.FromDateTime(DateTime.Now));
+        _mealLabel   = mealMoment.GetLabel();
+        Reset();
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        _isOpen = false;
+        StateHasChanged();
+    }
+
+    private void Reset()
+    {
+        _step         = Step.Search;
+        _stepTitle    = "Product zoeken";
+        _searchQuery  = "";
+        _suggestions  = [];
+        _searching    = false;
+        _selectedProduct = null;
+        _quantity     = 0;
+        ResetCreate();
+    }
+
+    private void ResetCreate()
+    {
+        _newName         = _searchQuery;
+        _newUnitType     = UnitTypeDto.Gram;
+        _newUnitLabel    = "";
+        _newGramsPerUnit = null;
+        _newKcal         = 0;
+        _newCarbs        = 0;
+        _newFat          = 0;
+        _newProtein      = 0;
+        _createError     = null;
+    }
+
+    private async Task OnSearchInput()
+    {
+        if (_searchQuery.Length < 2)
+        {
+            _suggestions = [];
+            return;
+        }
+        _searching   = true;
+        _suggestions = (await ProductRepo.SearchAsync(_searchQuery)).ToList();
+        _searching   = false;
+    }
+
+    private void GoToCreate()
+    {
+        ResetCreate();
+        _newName   = _searchQuery;
+        _step      = Step.Create;
+        _stepTitle = "Nieuw product";
+        StateHasChanged();
+    }
+
+    private void BackToSearch()
+    {
+        _step      = Step.Search;
+        _stepTitle = "Product zoeken";
+        StateHasChanged();
+    }
+
+    private void SelectProduct(ProductDto product)
+    {
+        _selectedProduct = product;
+        _step            = Step.Quantity;
+        _stepTitle       = "Hoeveelheid";
+        StateHasChanged();
+    }
+
+    private async Task SaveProduct()
+    {
+        _createError = null;
+        if (string.IsNullOrWhiteSpace(_newName))        { _createError = "Vul een productnaam in."; return; }
+        if (_newKcal <= 0)                               { _createError = "Vul kcal per 100g in."; return; }
+        if (_newUnitType == UnitTypeDto.Piece)
+        {
+            if (string.IsNullOrWhiteSpace(_newUnitLabel))  { _createError = "Vul een eenheidsnaam in (bijv. snee)."; return; }
+            if (_newGramsPerUnit is null or <= 0)           { _createError = "Vul het gewicht per eenheid in."; return; }
+        }
+
+        var dto = new CreateProductDto(
+            _newName.Trim(),
+            _newKcal,
+            _newCarbs,
+            _newFat,
+            _newProtein,
+            _newUnitType,
+            _newUnitType == UnitTypeDto.Piece ? _newUnitLabel.Trim() : null,
+            _newUnitType == UnitTypeDto.Piece ? _newGramsPerUnit : null);
+
+        var product = await ProductRepo.CreateAsync(dto);
+        SelectProduct(product);
+    }
+
+    private async Task SaveConsumption()
+    {
+        if (_selectedProduct is null || _quantity <= 0) return;
+
+        await ConsumptionRepo.AddAsync(new AddConsumptionDto(
+            _selectedProduct.Id,
+            _quantity,
+            _mealMoment,
+            _consumedAt));
+
+        Close();
+        await OnCompleted.InvokeAsync();
+    }
+
+    private decimal CalculateKcal()
+    {
+        if (_selectedProduct is null || _quantity <= 0) return 0;
+        var grams = _selectedProduct.DefaultUnit == UnitTypeDto.Piece
+            ? _quantity * (_selectedProduct.GramsPerUnit ?? 0)
+            : _quantity;
+        return grams / 100m * _selectedProduct.KcalPer100g;
+    }
+
+    private void OnConsumedDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", out var d))
+            _consumedAt = d.ToDateTime(TimeOnly.FromTimeSpan(_consumedAt.TimeOfDay));
+    }
+
+    private void OnConsumedTimeChanged(ChangeEventArgs e)
+    {
+        if (TimeOnly.TryParseExact(e.Value?.ToString(), "HH:mm", out var t))
+            _consumedAt = DateOnly.FromDateTime(_consumedAt).ToDateTime(t);
+    }
+}
