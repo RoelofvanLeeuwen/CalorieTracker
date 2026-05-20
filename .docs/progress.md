@@ -12,12 +12,11 @@
 | US-001 — Consumptie invoeren | Lazy productaanmaak, per-100g macros, datum/tijd aanpasbaar, dagtotaal | Getest, PR gemerged |
 | US-002 — Dagdashboard | Dagdoel (Mifflin-St Jeor), profielpagina, voortgangsbalken kcal + macros | Getest, PR gemerged |
 | US-003 — Activiteiten registreren | ActiviteitWizard, MET-berekening, zichtbaar op dashboard | Getest, PR gemerged |
+| UX-BUG-001 — Modal sluit bij tekst selecteren | onmousedown/onmouseup fix in beide wizards | Getest, PR gemerged |
 
 ## Lopende onderdelen
 
-| Onderdeel | Status | Volgende stap |
-|----------|--------|---------------|
-| UX-BUG-001 — Modal sluit bij tekst selecteren | In ontwikkeling | Testen in browser, daarna PR naar development |
+_Geen._
 
 ## Nog te doen
 
@@ -28,10 +27,8 @@
 
 ## Bekende problemen
 
-| Probleem | Impact | Status |
-|---------|--------|--------|
-| Modal sluit bij tekst selecteren (drag buiten popup) | Gebruiksvriendelijkheid | Opgelost in UX-BUG-001, nog niet gemerged |
+_Geen._
 
 ## Volgende logische stap
 
-UX-BUG-001 testen in browser aan de hand van de acceptatiescenario's in specification.md. Na goedkeuring PR aanmaken naar development.
+Keuze maken: US-004 (meldingen) oppakken of verdere UX-verbeteringen doorvoeren.
