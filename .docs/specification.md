@@ -162,6 +162,36 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+---
+
+### UX-004 — Dashboard: activiteiten bovenaan, maaltijdmomenten inklapbaar
+
+**Status:** In ontwikkeling
+
+**Verhaal:**
+> Als gebruiker wil ik op het dashboard de activiteiten bovenaan zien en de maaltijdmomenten standaard ingeklapt, zodat ik in één oogopslag mijn energiebalans zie en zelf kies welk maaltijdmoment ik uitklapt.
+
+**Verfijningen:**
+- Activiteitensectie staat boven de maaltijdmomenten.
+- Activiteiten zijn altijd volledig zichtbaar (geen collapse).
+- Elk maaltijdmoment is standaard ingeklapt.
+- Klikken op de koptekst klapt de productenlijst open of dicht (chevron als indicator).
+- De knop "Toevoegen" is altijd zichtbaar, ook als het maaltijdmoment ingeklapt is.
+- Kcal-subtotaal per maaltijdmoment blijft altijd zichtbaar in de koptekst.
+
+**Scope:** alleen `Home.razor`.
+
+**Acceptatiescenario's:**
+
+1. Ik open het dashboard — activiteiten staan bovenaan, maaltijdmomenten eronder, allemaal ingeklapt.
+2. Ik zie bij elk ingeklapt maaltijdmoment het kcal-subtotaal (indien gevuld) en de knop "Toevoegen".
+3. Ik klik op "Ontbijt" — de productenlijst klapt open.
+4. Ik klik opnieuw op "Ontbijt" — de lijst klapt weer dicht.
+5. Meerdere maaltijdmomenten kunnen tegelijk open zijn.
+6. De activiteitensectie toont altijd alle activiteiten.
+
+---
+
 ## Toekomstige scope
 
 - AI-fotoherkenning: gebruiker maakt een foto van zijn maaltijd, het systeem herkent de producten en geschatte hoeveelheden via een AI-model.

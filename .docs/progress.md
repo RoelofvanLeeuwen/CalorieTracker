@@ -16,7 +16,9 @@
 
 ## Lopende onderdelen
 
-_Geen._
+| Onderdeel | Status | Volgende stap |
+|----------|--------|---------------|
+| UX-004 — Dashboard inklapbare maaltijdmomenten | In ontwikkeling | Testen in browser, daarna PR naar development |
 
 ## Nog te doen
 
@@ -31,4 +33,4 @@ _Geen._
 
 ## Volgende logische stap
 
-Keuze maken: US-004 (meldingen) oppakken of verdere UX-verbeteringen doorvoeren.
+UX-004 testen in browser aan de hand van de acceptatiescenario's. Na goedkeuring PR aanmaken naar development.
