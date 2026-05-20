@@ -138,7 +138,7 @@ Consument (enkelvoudig, geen login/authenticatie vereist in de initiële scope).
 
 ### UX-BUG-001 — Modal sluit ongewenst bij tekst selecteren
 
-**Status:** In ontwikkeling
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
 
 **Verhaal:**
 > Als gebruiker wil ik tekst kunnen selecteren in een invoerveld van een popup door te klikken en te slepen, ook als mijn muis de popup verlaat voordat ik de muisknop loslaat, zodat de popup niet onverwacht sluit.
