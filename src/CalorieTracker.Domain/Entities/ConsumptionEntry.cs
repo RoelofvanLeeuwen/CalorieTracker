@@ -36,4 +36,10 @@ public class ConsumptionEntry : EntityBase
         MealMoment = mealMoment,
         ConsumedAt = consumedAt,
     };
+
+    public void Update(decimal quantity, DateTime consumedAt)
+    {
+        Quantity   = quantity;
+        ConsumedAt = consumedAt;
+    }
 }

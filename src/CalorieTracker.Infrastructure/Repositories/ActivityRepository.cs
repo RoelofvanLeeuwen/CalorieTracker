@@ -25,6 +25,15 @@ public class ActivityRepository(ApplicationDbContext context) : IActivityReposit
         return new DayActivityLogDto(dtos, dtos.Sum(a => a.KcalBurned));
     }
 
+    public async Task<ActivityDto> UpdateAsync(int id, UpdateActivityDto dto, CancellationToken ct = default)
+    {
+        var activity = await context.Activities.FindAsync([id], ct)
+            ?? throw new InvalidOperationException($"Activity {id} niet gevonden.");
+        activity.Update(dto.Name, dto.DurationMinutes, dto.KcalBurned, dto.PerformedAt);
+        await context.SaveChangesAsync(ct);
+        return new ActivityDto(activity.Id, activity.Name, activity.DurationMinutes, activity.KcalBurned, activity.PerformedAt);
+    }
+
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         var activity = await context.Activities.FindAsync([id], ct)

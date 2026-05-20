@@ -19,4 +19,12 @@ public class Activity : EntityBase
             KcalBurned      = kcalBurned,
             PerformedAt     = performedAt
         };
+
+    public void Update(string name, int durationMinutes, decimal kcalBurned, DateTime performedAt)
+    {
+        Name            = name;
+        DurationMinutes = durationMinutes;
+        KcalBurned      = kcalBurned;
+        PerformedAt     = performedAt;
+    }
 }

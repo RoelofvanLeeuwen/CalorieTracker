@@ -50,6 +50,17 @@ public class ConsumptionEntryRepository(ApplicationDbContext context) : IConsump
             allEntries.Sum(e => e.TotalProtein));
     }
 
+    public async Task<ConsumptionEntryDto> UpdateAsync(int id, UpdateConsumptionEntryDto dto, CancellationToken ct = default)
+    {
+        var entry = await context.ConsumptionEntries
+            .Include(e => e.Product)
+            .FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new InvalidOperationException($"ConsumptionEntry {id} niet gevonden.");
+        entry.Update(dto.Quantity, dto.ConsumedAt);
+        await context.SaveChangesAsync(ct);
+        return entry.ToDto();
+    }
+
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         var entry = await context.ConsumptionEntries.FindAsync([id], ct)
