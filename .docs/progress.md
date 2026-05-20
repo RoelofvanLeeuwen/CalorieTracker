@@ -22,8 +22,8 @@
 - [x] US-001 geïmplementeerd (Domain / Application / Infrastructure / Web)
 - [x] EF Core InitialCreate migratie aangemaakt
 - [x] Build: 0 errors, 0 warnings
-- [ ] US-001 getest in browser
-- [ ] Pull request naar development
+- [x] US-001 getest in browser — werkt correct
+- [x] Pull request naar development
 
 ## Openstaande vragen
 
