@@ -8,11 +8,11 @@
 
 - [x] Documentatiebestanden aangemaakt (architecture.md, decisions.md, progress.md, specification.md)
 - [x] .gitignore en global.json aangemaakt
-- [ ] Git-repository geïnitialiseerd en main gepusht naar GitHub
-- [ ] development aangemaakt en gepusht
-- [ ] Clean Architecture-baseline (Domain / Application / Infrastructure / Web / Tests)
-- [ ] Blazor .Web shell met GC design (MainLayout, GcIcon, app.css)
-- [ ] Bouw slaagt zonder fouten
+- [x] Git-repository geïnitialiseerd en main gepusht naar GitHub
+- [x] development aangemaakt en gepusht
+- [x] Clean Architecture-baseline (Domain / Application / Infrastructure / Web / Tests)
+- [x] Blazor .Web shell met GC design (MainLayout, GcIcon, app.css)
+- [x] Bouw slaagt zonder fouten (0 errors, 0 warnings)
 
 ## Fase 2 — Scope en US-001
 

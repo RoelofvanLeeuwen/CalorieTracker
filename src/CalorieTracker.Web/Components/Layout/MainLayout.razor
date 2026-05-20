@@ -1,0 +1,120 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+
+<div class="gc-shell">
+    <header class="gc-appbar">
+        <div class="gc-appbar-inner">
+            <div class="gc-brand">
+                <button class="gc-iconbtn gc-hamburger gc-mobile-only"
+                        @onclick="ToggleDrawer"
+                        aria-label="@(_drawerOpen ? "Menu sluiten" : "Menu openen")">
+                    <GcIcon Name="@(_drawerOpen ? "close" : "menu")" Size="22" />
+                </button>
+                <a class="gc-logo" href="/">
+                    <span class="gc-logo-mark" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="var(--gc-primary)" />
+                            <path d="M10 9v14M10 9h8a5 5 0 0 1 0 10h-3v4"
+                                  stroke="white" stroke-width="2.6"
+                                  stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="gc-logo-text">
+                        <span class="gc-logo-org">Graafschap</span>
+                        <span class="gc-logo-sub">CalorieTracker</span>
+                    </span>
+                </a>
+            </div>
+
+            <nav class="gc-nav gc-desktop-only" aria-label="Hoofdnavigatie">
+                @foreach (var item in _navItems)
+                {
+                    <a class="gc-nav-link @(IsActive(item.Href) ? "is-active" : "")"
+                       href="@item.Href">@item.Label</a>
+                }
+            </nav>
+
+            <div class="gc-appbar-actions">
+                <div class="gc-search gc-desktop-only" role="search">
+                    <GcIcon Name="search" Size="16" />
+                    <span>Zoeken…</span>
+                    <kbd>⌘K</kbd>
+                </div>
+                <button class="gc-iconbtn" aria-label="Notificaties">
+                    <GcIcon Name="bell" Size="18" />
+                    <span class="gc-dot"></span>
+                </button>
+                <div class="gc-avatar" aria-label="Account">RV</div>
+            </div>
+        </div>
+    </header>
+
+    @if (_drawerOpen)
+    {
+        <div class="gc-scrim" @onclick="CloseDrawer" role="presentation"></div>
+        <aside class="gc-drawer" aria-label="Navigatielade">
+            <div class="gc-drawer-head">
+                <div class="gc-logo">
+                    <span class="gc-logo-mark">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="var(--gc-primary)" />
+                            <path d="M10 9v14M10 9h8a5 5 0 0 1 0 10h-3v4"
+                                  stroke="white" stroke-width="2.6"
+                                  stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="gc-logo-text">
+                        <span class="gc-logo-org">Graafschap</span>
+                        <span class="gc-logo-sub">CalorieTracker</span>
+                    </span>
+                </div>
+                <button class="gc-iconbtn" @onclick="CloseDrawer" aria-label="Sluiten">
+                    <GcIcon Name="close" Size="20" />
+                </button>
+            </div>
+            <nav class="gc-drawer-nav" aria-label="Mobiele navigatie">
+                @foreach (var item in _navItems)
+                {
+                    <a class="gc-drawer-link @(IsActive(item.Href) ? "is-active" : "")"
+                       href="@item.Href" @onclick="CloseDrawer">
+                        <span class="gc-drawer-ico"><GcIcon Name="@item.Icon" Size="20" /></span>
+                        <span>@item.Label</span>
+                    </a>
+                }
+            </nav>
+            <div class="gc-drawer-foot">
+                <div class="gc-avatar" style="width: 36px; height: 36px;">RV</div>
+                <div>
+                    <div class="gc-drawer-user">Gebruiker</div>
+                    <div class="gc-drawer-role">Beheerder</div>
+                </div>
+            </div>
+        </aside>
+    }
+
+    <main class="gc-main" id="main-content">
+        @Body
+    </main>
+</div>
+
+@code {
+    private bool _drawerOpen;
+
+    private record NavItem(string Label, string Href, string Icon);
+
+    private readonly NavItem[] _navItems =
+    [
+        new("Home",     "/",          "home"),
+        new("Dagboek",  "/dagboek",   "book"),
+        new("Voeding",  "/voeding",   "leaf"),
+        new("Overzicht","/overzicht", "chart"),
+    ];
+
+    private bool IsActive(string href) =>
+        href == "/"
+            ? Nav.Uri == Nav.BaseUri || Nav.Uri.TrimEnd('/') == Nav.BaseUri.TrimEnd('/')
+            : Nav.Uri.StartsWith(Nav.BaseUri.TrimEnd('/') + href, StringComparison.OrdinalIgnoreCase);
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private void CloseDrawer()  => _drawerOpen = false;
+}
