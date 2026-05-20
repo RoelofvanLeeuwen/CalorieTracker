@@ -128,6 +128,7 @@ else
                             <th class="gc-col-num">Duur</th>
                             <th class="gc-col-num">kcal verbrand</th>
                             <th class="gc-col-num gc-col-macro">Tijd</th>
+                            <th style="width:40px"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,6 +139,14 @@ else
                                 <td class="gc-col-num">@a.DurationMinutes min</td>
                                 <td class="gc-col-num">@a.KcalBurned.ToString("F0")</td>
                                 <td class="gc-col-num gc-col-macro">@a.PerformedAt.ToString("HH:mm")</td>
+                                <td style="width:40px;padding:0 4px">
+                                    <button class="gc-iconbtn gc-iconbtn-danger"
+                                            style="width:30px;height:30px;border-radius:6px"
+                                            @onclick="() => VraagVerwijderActiviteit(a.Id)"
+                                            aria-label="Verwijderen">
+                                        <GcIcon Name="trash" Size="14" />
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -183,6 +192,7 @@ else
                                     <th class="gc-col-num gc-col-macro">Koolh.</th>
                                     <th class="gc-col-num gc-col-macro">Vet</th>
                                     <th class="gc-col-num gc-col-macro">Eiwit</th>
+                                    <th style="width:40px"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -194,6 +204,14 @@ else
                                         <td class="gc-col-num gc-col-macro">@entry.TotalCarbs.ToString("F1") g</td>
                                         <td class="gc-col-num gc-col-macro">@entry.TotalFat.ToString("F1") g</td>
                                         <td class="gc-col-num gc-col-macro">@entry.TotalProtein.ToString("F1") g</td>
+                                        <td style="width:40px;padding:0 4px">
+                                            <button class="gc-iconbtn gc-iconbtn-danger"
+                                                    style="width:30px;height:30px;border-radius:6px"
+                                                    @onclick="() => VraagVerwijderConsumptie(entry.Id)"
+                                                    aria-label="Verwijderen">
+                                                <GcIcon Name="trash" Size="14" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -207,6 +225,9 @@ else
     <ConsumptieWizard  @ref="_consumptieWizard"  OnCompleted="LoadDayLog" />
     <ActiviteitWizard  @ref="_activiteitWizard"  OnCompleted="LoadDayLog"
                        UserWeightKg="@(_profile.WeightKg)" />
+    <BevestigingModal  @ref="_bevestigingModal"
+                       Titel="Verwijderen"
+                       Bericht="Weet je zeker dat je dit wilt verwijderen?" />
 }
 
 @code {
@@ -216,8 +237,9 @@ else
     private UserProfileDto?     _profile;
     private DayLogDto?          _dayLog;
     private DayActivityLogDto?  _dayActivityLog;
-    private ConsumptieWizard          _consumptieWizard = null!;
-    private ActiviteitWizard          _activiteitWizard = null!;
+    private ConsumptieWizard          _consumptieWizard  = null!;
+    private ActiviteitWizard          _activiteitWizard  = null!;
+    private BevestigingModal          _bevestigingModal  = null!;
     private bool                      _loading = true;
     private HashSet<MealMomentDto>    _expanded = [];
 
@@ -244,6 +266,24 @@ else
     {
         if (!_expanded.Add(mm))
             _expanded.Remove(mm);
+    }
+
+    private void VraagVerwijderConsumptie(int id) =>
+        _bevestigingModal.Open(() => VerwijderConsumptie(id));
+
+    private async Task VerwijderConsumptie(int id)
+    {
+        await ConsumptionRepo.DeleteAsync(id);
+        await LoadDayLog();
+    }
+
+    private void VraagVerwijderActiviteit(int id) =>
+        _bevestigingModal.Open(() => VerwijderActiviteit(id));
+
+    private async Task VerwijderActiviteit(int id)
+    {
+        await ActivityRepo.DeleteAsync(id);
+        await LoadDayLog();
     }
 
     private void OpenConsumptieWizard(MealMomentDto mealMoment) =>

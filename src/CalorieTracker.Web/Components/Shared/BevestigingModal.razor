@@ -1,0 +1,66 @@
+@if (_isOpen)
+{
+    <div class="gc-modal-backdrop"
+         @onmousedown="() => _backdropMouseDown = true"
+         @onmouseup="OnBackdropMouseUp">
+        <div class="gc-modal" style="max-width: 400px;"
+             @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation>
+
+            <div class="gc-modal-head">
+                <div>
+                    <strong style="font-size:16px">@Titel</strong>
+                </div>
+                <button class="gc-iconbtn" @onclick="Annuleer" aria-label="Sluiten">
+                    <GcIcon Name="close" Size="18" />
+                </button>
+            </div>
+
+            <div class="gc-modal-body">
+                <p style="margin:0;color:var(--gc-ink-2)">@Bericht</p>
+            </div>
+
+            <div class="gc-modal-foot">
+                <button class="gc-btn gc-btn-ghost" @onclick="Annuleer">Annuleren</button>
+                <button class="gc-btn gc-btn-danger" @onclick="Bevestig">Verwijderen</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Titel   { get; set; } = "Verwijderen";
+    [Parameter] public string Bericht { get; set; } = "Weet je zeker dat je dit wilt verwijderen?";
+
+    private bool     _isOpen;
+    private bool     _backdropMouseDown;
+    private Func<Task>? _onBevestigd;
+
+    public void Open(Func<Task> onBevestigd)
+    {
+        _onBevestigd = onBevestigd;
+        _isOpen      = true;
+        StateHasChanged();
+    }
+
+    private void OnBackdropMouseUp()
+    {
+        if (_backdropMouseDown) Annuleer();
+        _backdropMouseDown = false;
+    }
+
+    private void Annuleer()
+    {
+        _isOpen      = false;
+        _onBevestigd = null;
+        StateHasChanged();
+    }
+
+    private async Task Bevestig()
+    {
+        _isOpen = false;
+        StateHasChanged();
+        if (_onBevestigd is not null)
+            await _onBevestigd();
+    }
+}

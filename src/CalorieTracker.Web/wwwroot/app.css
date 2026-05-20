@@ -132,6 +132,7 @@ html, body {
   flex-shrink: 0;
 }
 .gc-iconbtn:hover { background: var(--gc-line-2); color: var(--gc-ink); }
+.gc-iconbtn-danger:hover { background: #fdecea; color: #d32f2f; }
 .gc-iconbtn .gc-dot {
   position: absolute; top: 9px; right: 10px;
   width: 7px; height: 7px; border-radius: 50%;
@@ -293,6 +294,12 @@ html, body {
   box-shadow: 0 2px 0 var(--gc-primary-600), 0 4px 14px -4px rgba(229,0,125,.45);
 }
 .gc-btn-primary:hover { background: var(--gc-primary-600); }
+.gc-btn-danger {
+  background: #d32f2f;
+  color: #fff;
+  box-shadow: 0 2px 0 #b71c1c, 0 4px 14px -4px rgba(211,47,47,.45);
+}
+.gc-btn-danger:hover { background: #b71c1c; }
 .gc-btn-ghost {
   background: #fff;
   color: var(--gc-ink);
