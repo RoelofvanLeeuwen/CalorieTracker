@@ -2,7 +2,7 @@
 
 ## Huidige fase
 
-**Actieve branch:** `feature/UX-006-bewerken-modal`
+**Actieve branch:** `development`
 
 ## Afgeronde onderdelen
 
@@ -16,12 +16,11 @@
 | UX-004 — Dashboard inklapbaar + activiteiten bovenaan | Home.razor aangepast | Getest, PR gemerged |
 | UX-005 — Verwijderen consumptie en activiteiten | BevestigingModal + DeleteAsync | Getest, PR gemerged |
 | UX-007 — Responsive modals (bottom sheet op mobiel) | Media query in app.css | Getest, PR gemerged |
+| UX-006 — Bewerken consumptie en activiteiten via modal | BewerkenConsumptieModal + BewerkenActiviteitModal | Getest, PR gemerged |
 
 ## Lopende onderdelen
 
-| Onderdeel | Status | Volgende stap |
-|----------|--------|---------------|
-| UX-006 — Bewerken consumptie en activiteiten via modal | In ontwikkeling | Testen in browser, daarna PR naar development |
+_Geen._
 
 ## Nog te doen
 
@@ -36,4 +35,4 @@ _Geen._
 
 ## Volgende logische stap
 
-UX-006 testen in browser aan de hand van de acceptatiescenario's. Na goedkeuring PR aanmaken naar development.
+US-004 oppakken: meldingen bij vergeten invoer of overschrijding dagdoel.

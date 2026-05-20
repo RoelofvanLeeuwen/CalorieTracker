@@ -196,7 +196,7 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ### UX-005 — Consumptie-items en activiteiten verwijderen
 
-**Status:** In ontwikkeling
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
 
 **Verhaal:**
 > Als gebruiker wil ik een consumptie-item of activiteit kunnen verwijderen via een prullenbak-icoon per rij, zodat ik foute invoer kan corrigeren.
@@ -221,9 +221,39 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+---
+
+### UX-006 — Consumptie-items en activiteiten bewerken via modal
+
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
+
+**Verhaal:**
+> Als gebruiker wil ik een consumptie-item of activiteit kunnen bewerken via een potlood-icoon per rij, zodat ik foute waarden kan corrigeren zonder het item te verwijderen en opnieuw in te voeren.
+
+**Verfijningen:**
+- Potlood-icoon per rij naast het prullenbak-icoon.
+- Klikken opent een modal (op mobiel: bottom sheet via UX-007).
+- Consumptie bewerkbaar: hoeveelheid, datum, tijd.
+- Activiteit bewerkbaar: naam, duur, kcal verbrand, datum, tijd.
+- Validatie in de modal; foutmelding direct zichtbaar.
+- Opslaan-knop werkt, annuleren sluit zonder wijziging.
+
+**Scope:** `BewerkenConsumptieModal.razor`, `BewerkenActiviteitModal.razor`, `Home.razor`, domein `Update()`-methoden, `UpdateConsumptionEntryDto`, `UpdateActivityDto`, repository `UpdateAsync`.
+
+**Acceptatiescenario's:**
+
+1. Ik klap een maaltijdmoment open — elke rij toont een potlood- en prullenbak-icoon.
+2. Ik klik op het potlood-icoon — een modal opent met de huidige waarden ingevuld.
+3. Ik wijzig de hoeveelheid en klik Opslaan — modal sluit, subtotalen worden bijgewerkt.
+4. Ik klik op potlood en klik Annuleren — modal sluit zonder wijziging.
+5. Ik laat een verplicht veld leeg en klik Opslaan — foutmelding verschijnt in de modal.
+6. Hetzelfde geldt voor activiteiten.
+
+---
+
 ### UX-007 — Responsive modals: desktop gecentreerd, mobiel bottom sheet
 
-**Status:** In ontwikkeling
+**Status:** Gereed — getest en goedgekeurd (2026-05-20)
 
 **Verhaal:**
 > Als gebruiker op een mobiel apparaat wil ik dat popups als een bottom sheet van onderaf verschijnen in plaats van een gecentreerde dialoog, zodat de popup ergonomisch bereikbaar is en de inhoud van het scherm niet bedekt.
