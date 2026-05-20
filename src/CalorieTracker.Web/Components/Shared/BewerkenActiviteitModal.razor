@@ -1,0 +1,148 @@
+@inject IActivityRepository ActivityRepo
+
+@if (_isOpen)
+{
+    <div class="gc-modal-backdrop"
+         @onmousedown="() => _backdropMouseDown = true"
+         @onmouseup="OnBackdropMouseUp">
+        <div class="gc-modal" style="max-width: 420px;"
+             @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation>
+
+            <div class="gc-modal-head">
+                <div>
+                    <strong style="font-size:16px">Activiteit bewerken</strong>
+                </div>
+                <button class="gc-iconbtn" @onclick="Sluiten" aria-label="Sluiten">
+                    <GcIcon Name="close" Size="18" />
+                </button>
+            </div>
+
+            <div class="gc-modal-body">
+                <div class="gc-form">
+                    <label class="gc-field">
+                        <span>Naam</span>
+                        <input type="text" @bind="_naam" placeholder="bijv. hardlopen" />
+                    </label>
+
+                    <div class="gc-form-row">
+                        <label class="gc-field">
+                            <span>Duur (minuten)</span>
+                            <input type="number" @bind="_duurMinuten" min="1" step="1" />
+                        </label>
+                        <label class="gc-field">
+                            <span>kcal verbrand</span>
+                            <input type="number" @bind="_kcalBurned" min="0" step="1" />
+                        </label>
+                    </div>
+
+                    <div class="gc-form-row">
+                        <label class="gc-field">
+                            <span>Datum</span>
+                            <input type="date"
+                                   value="@_performedAt.ToString("yyyy-MM-dd")"
+                                   @onchange="OnDateChanged" />
+                        </label>
+                        <label class="gc-field">
+                            <span>Tijd</span>
+                            <input type="time"
+                                   value="@_performedAt.ToString("HH:mm")"
+                                   @onchange="OnTimeChanged" />
+                        </label>
+                    </div>
+
+                    @if (_fout is not null)
+                    {
+                        <div class="gc-alert">
+                            <GcIcon Name="info" Size="16" />
+                            <div>@_fout</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="gc-modal-foot">
+                <button class="gc-btn gc-btn-ghost" @onclick="Sluiten">Annuleren</button>
+                <button class="gc-btn" @onclick="OpslaanAsync" disabled="@_bezig">Opslaan</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private bool      _isOpen;
+    private bool      _backdropMouseDown;
+    private bool      _bezig;
+    private string?   _fout;
+    private int       _id;
+    private string    _naam        = "";
+    private int       _duurMinuten;
+    private decimal   _kcalBurned;
+    private DateTime  _performedAt;
+
+    public void Open(ActivityDto activity)
+    {
+        _id          = activity.Id;
+        _naam        = activity.Name;
+        _duurMinuten = activity.DurationMinutes;
+        _kcalBurned  = activity.KcalBurned;
+        _performedAt = activity.PerformedAt;
+        _fout        = null;
+        _bezig       = false;
+        _isOpen      = true;
+        StateHasChanged();
+    }
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+            _performedAt = d.ToDateTime(TimeOnly.FromDateTime(_performedAt));
+    }
+
+    private void OnTimeChanged(ChangeEventArgs e)
+    {
+        if (TimeOnly.TryParse(e.Value?.ToString(), out var t))
+            _performedAt = DateOnly.FromDateTime(_performedAt).ToDateTime(t);
+    }
+
+    private void OnBackdropMouseUp()
+    {
+        if (_backdropMouseDown) Sluiten();
+        _backdropMouseDown = false;
+    }
+
+    private void Sluiten()
+    {
+        _isOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task OpslaanAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_naam))
+        {
+            _fout = "Naam is verplicht.";
+            return;
+        }
+        if (_duurMinuten <= 0)
+        {
+            _fout = "Duur moet minimaal 1 minuut zijn.";
+            return;
+        }
+        if (_kcalBurned < 0)
+        {
+            _fout = "kcal verbrand kan niet negatief zijn.";
+            return;
+        }
+
+        _fout  = null;
+        _bezig = true;
+        await ActivityRepo.UpdateAsync(_id, new UpdateActivityDto(_naam, _duurMinuten, _kcalBurned, _performedAt));
+        _bezig  = false;
+        _isOpen = false;
+        StateHasChanged();
+        await OnSaved.InvokeAsync();
+    }
+}
