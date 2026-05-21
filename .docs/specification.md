@@ -276,6 +276,64 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+### US-004 — Inline dashboard-meldingen
+
+**Status:** Gereed — getest en goedgekeurd (2026-05-21)
+
+**Verhaal:**
+> Als gebruiker wil ik op het dashboard gewaarschuwd worden als ik mijn dagdoel heb overschreden of als ik vandaag nog niets heb ingevoerd, zodat ik direct actie kan ondernemen.
+
+**Verfijningen:**
+- Twee triggers: overschrijding dagdoel en geen invoer vandaag.
+- Meldingen worden getoond als inline banners bovenaan het dashboard (onder de paginakop), niet als popup.
+- Banners zijn dismissbaar (×-knop per banner).
+- Na dismissal verdwijnt de banner voor de rest van de sessie (geen persistentie — dat is US-005).
+- Banners kunnen tegelijk zichtbaar zijn als beide triggers actief zijn.
+- De overschrijding-banner verdwijnt automatisch als de invoer wordt verwijderd en de kcal weer onder het doel zakt (dashboard herlaadt).
+- De vergeten-invoer-banner verdwijnt automatisch zodra de eerste consumptie van vandaag is ingevoerd.
+
+**Scope:** `MeldingBanner.razor` (nieuw), `Home.razor`, `app.css`.
+
+**Acceptatiescenario's:**
+
+1. Ik open het dashboard zonder invoer voor vandaag → banner "Je hebt vandaag nog niets gelogd." verschijnt.
+2. Ik voeg een consumptie-item toe → de vergeten-invoer-banner verdwijnt.
+3. Ik voeg genoeg items toe om het dagdoel te overschrijden → banner "Je hebt je dagdoel van X kcal overschreden." verschijnt.
+4. Ik verwijder een item zodat kcal weer onder het doel valt → de overschrijding-banner verdwijnt.
+5. Ik sluit een banner met de ×-knop → de banner verdwijnt voor de rest van de sessie, ook als de trigger nog actief is.
+6. Beide banners kunnen tegelijk zichtbaar zijn.
+
+---
+
+### US-005 — Meldingencentrum met belpictogram
+
+**Status:** Gepland — volgt na US-004
+
+**Verhaal:**
+> Als gebruiker wil ik een belpictogram rechtsboven zien met een badge voor ongelezen meldingen, en via een overzichtspagina mijn meldingsgeschiedenis kunnen inzien, zodat ik geen melding hoef te missen.
+
+**Verfijningen:**
+- Belpictogram rechtsboven in de appbar (bestaat al in het design, zonder functionaliteit).
+- Badge toont het aantal ongelezen meldingen (rood, verdwijnt als alles gelezen is).
+- Klikken op de bel navigeert naar `/meldingen`.
+- `/meldingen` toont een overzicht van alle meldingen (nieuwste bovenaan), met type, bericht en tijdstip.
+- Meldingen worden persistent opgeslagen (`Notification`-entity).
+- Melding markeren als gelezen: automatisch bij openen van de overzichtspagina of handmatig.
+- Typen: `DailyGoalExceeded`, `NoEntryToday` (zelfde als US-004).
+- Meldingen worden aangemaakt door de applicatielaag (geen UI-logica in razor).
+
+**Domein nieuw:** `Notification` (Id, Type, Message, CreatedAt, IsRead).
+
+**Acceptatiescenario's:**
+
+1. Ik overschrijd mijn dagdoel → een melding wordt opgeslagen en de badge toont "1".
+2. Ik klik op de bel → ik ga naar `/meldingen` en zie de melding.
+3. Na het openen zijn alle meldingen als gelezen gemarkeerd → badge verdwijnt.
+4. Ik navigeer weg en kom terug → badge is weg, melding staat nog in de geschiedenis.
+5. Meerdere meldingen op verschillende dagen zijn zichtbaar in de geschiedenis.
+
+---
+
 ## Toekomstige scope
 
 - AI-fotoherkenning: gebruiker maakt een foto van zijn maaltijd, het systeem herkent de producten en geschatte hoeveelheden via een AI-model.

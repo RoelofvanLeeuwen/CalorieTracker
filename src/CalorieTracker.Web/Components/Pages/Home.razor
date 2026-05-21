@@ -21,6 +21,7 @@ else
     var remaining = goal.TotalKcal - eaten;
     var isOver    = eaten > goal.TotalKcal;
     var kcalPct   = goal.TotalKcal > 0 ? (double)(eaten / goal.TotalKcal) * 100.0 : 0;
+    var _geenInvoerVandaag = _dayLog is null || !_dayLog.MealMoments.Any(m => m.Entries.Count > 0);
 
     <div class="gc-pageheader">
         <div>
@@ -29,6 +30,16 @@ else
         </div>
         <a class="gc-btn gc-btn-ghost gc-btn-sm" href="/dagboek">Naar dagboek</a>
     </div>
+
+    @* ── Meldingen ── *@
+    @if (_geenInvoerVandaag)
+    {
+        <MeldingBanner Type="info" Message="Je hebt vandaag nog niets gelogd." />
+    }
+    @if (isOver)
+    {
+        <MeldingBanner Type="warning" Message="@($"Je hebt je dagdoel van {goal.TotalKcal:F0} kcal overschreden.")" />
+    }
 
     @* ── Kcal voortgang ── *@
     <div class="gc-dashboard-goal">

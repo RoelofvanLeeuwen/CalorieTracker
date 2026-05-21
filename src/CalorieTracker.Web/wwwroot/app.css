@@ -424,6 +424,44 @@ html, body {
   font-size: 13px;
 }
 
+/* ===== Meldingen ===== */
+.gc-melding {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--gc-radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  animation: melding-in .2s ease;
+}
+@keyframes melding-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.gc-melding-body {
+  display: flex; align-items: center; gap: 9px;
+}
+.gc-melding-icon {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+}
+.gc-melding-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: none; cursor: pointer;
+  padding: 4px; border-radius: 6px; flex-shrink: 0;
+  opacity: .6; transition: opacity .15s;
+  color: inherit;
+}
+.gc-melding-close:hover { opacity: 1; }
+
+.gc-melding-warning {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  color: #92400E;
+}
+.gc-melding-info {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E3A8A;
+}
+
 /* ===== Dagboek ===== */
 .gc-meal-section {
   margin-bottom: 24px;
