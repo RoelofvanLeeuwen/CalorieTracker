@@ -2,7 +2,10 @@
 @inject IUserProfileRepository ProfileRepo
 @inject IConsumptionEntryRepository ConsumptionRepo
 @inject IActivityRepository ActivityRepo
+@inject INotificationRepository NotificationRepo
+@inject INotificationService NotificationSvc
 @inject NavigationManager Nav
+@inject CalorieTracker.Web.Services.NotificationStateService NotificationState
 
 <PageTitle>Dashboard — CalorieTracker</PageTitle>
 
@@ -21,7 +24,6 @@ else
     var remaining = goal.TotalKcal - eaten;
     var isOver    = eaten > goal.TotalKcal;
     var kcalPct   = goal.TotalKcal > 0 ? (double)(eaten / goal.TotalKcal) * 100.0 : 0;
-    var _geenInvoerVandaag = _dayLog is null || !_dayLog.MealMoments.Any(m => m.Entries.Count > 0);
 
     <div class="gc-pageheader">
         <div>
@@ -32,13 +34,17 @@ else
     </div>
 
     @* ── Meldingen ── *@
-    @if (_geenInvoerVandaag)
+    @if (_notificationGeenInvoer is not null && !_notificationGeenInvoer.IsRead)
     {
-        <MeldingBanner Type="info" Message="Je hebt vandaag nog niets gelogd." />
+        <MeldingBanner Type="info"
+                       Message="@_notificationGeenInvoer.Message"
+                       OnDismissed="() => DismissNotification(_notificationGeenInvoer.Id)" />
     }
-    @if (isOver)
+    @if (_notificationOverDoel is not null && !_notificationOverDoel.IsRead)
     {
-        <MeldingBanner Type="warning" Message="@($"Je hebt je dagdoel van {goal.TotalKcal:F0} kcal overschreden.")" />
+        <MeldingBanner Type="warning"
+                       Message="@_notificationOverDoel.Message"
+                       OnDismissed="() => DismissNotification(_notificationOverDoel.Id)" />
     }
 
     @* ── Kcal voortgang ── *@
@@ -266,6 +272,8 @@ else
     private UserProfileDto?     _profile;
     private DayLogDto?          _dayLog;
     private DayActivityLogDto?  _dayActivityLog;
+    private NotificationDto?    _notificationOverDoel;
+    private NotificationDto?    _notificationGeenInvoer;
     private ConsumptieWizard          _consumptieWizard         = null!;
     private ActiviteitWizard          _activiteitWizard         = null!;
     private BevestigingModal          _bevestigingModal         = null!;
@@ -290,7 +298,29 @@ else
     {
         _dayLog         = await ConsumptionRepo.GetDayLogAsync(_today);
         _dayActivityLog = await ActivityRepo.GetDayLogAsync(_today);
+
+        if (_profile is not null)
+        {
+            var goal       = DailyGoalCalculator.Calculate(_profile);
+            var eaten      = _dayLog?.TotalKcal ?? 0m;
+            var isOver     = eaten > goal.TotalKcal;
+            var hasEntries = _dayLog is not null && _dayLog.MealMoments.Any(m => m.Entries.Count > 0);
+            var overMsg    = $"Je hebt je dagdoel van {goal.TotalKcal:F0} kcal overschreden.";
+
+            (_notificationOverDoel, _notificationGeenInvoer) =
+                await NotificationSvc.EvaluateAsync(_today, isOver, overMsg, hasEntries);
+        }
+
+        NotificationState.Set(await NotificationRepo.GetUnreadCountAsync());
         StateHasChanged();
+    }
+
+    private async Task DismissNotification(int id)
+    {
+        await NotificationRepo.MarkAsReadAsync(id);
+        if (_notificationOverDoel?.Id   == id) _notificationOverDoel   = _notificationOverDoel   with { IsRead = true };
+        if (_notificationGeenInvoer?.Id == id) _notificationGeenInvoer = _notificationGeenInvoer with { IsRead = true };
+        NotificationState.Set(await NotificationRepo.GetUnreadCountAsync());
     }
 
     private void ToggleMealMoment(MealMomentDto mm)

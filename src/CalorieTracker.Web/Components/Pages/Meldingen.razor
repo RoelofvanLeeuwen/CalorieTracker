@@ -1,0 +1,77 @@
+@page "/meldingen"
+@inject INotificationRepository NotificationRepo
+
+<PageTitle>Meldingen — CalorieTracker</PageTitle>
+
+<div class="gc-pageheader">
+    <div>
+        <div class="gc-eyebrow">Overzicht</div>
+        <h1 class="gc-h1">Meldingen</h1>
+    </div>
+</div>
+
+@if (_notifications is null)
+{
+    <div style="padding: 40px; text-align: center; color: var(--gc-ink-3);">Laden…</div>
+}
+else if (_notifications.Count == 0)
+{
+    <div class="gc-card" style="padding: 32px; text-align: center; color: var(--gc-ink-3);">
+        Geen meldingen gevonden.
+    </div>
+}
+else
+{
+    <div class="gc-card">
+        <table class="gc-table">
+            <thead>
+                <tr>
+                    <th style="width: 28px"></th>
+                    <th>Melding</th>
+                    <th class="gc-col-num">Datum</th>
+                    <th class="gc-col-num">Tijd</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var n in _notifications)
+                {
+                    <tr class="@(n.IsRead ? "" : "gc-row-unread")">
+                        <td style="padding: 14px 8px 14px 18px">
+                            @if (!n.IsRead)
+                            {
+                                <span class="gc-unread-dot"></span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <span class="gc-pill @(n.Category == NotificationCategoryDto.DailyGoalExceeded ? "gc-pill-warning" : "gc-pill-info")">
+                                    @GetLabel(n.Category)
+                                </span>
+                                @n.Message
+                            </div>
+                        </td>
+                        <td class="gc-col-num">@n.CreatedAt.ToString("dd-MM-yyyy")</td>
+                        <td class="gc-col-num">@n.CreatedAt.ToString("HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<NotificationDto>? _notifications;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await NotificationRepo.MarkAllAsReadAsync();
+        _notifications = await NotificationRepo.GetAllAsync();
+    }
+
+    private static string GetLabel(NotificationCategoryDto category) => category switch
+    {
+        NotificationCategoryDto.DailyGoalExceeded => "Dagdoel",
+        NotificationCategoryDto.NoEntryToday      => "Geen invoer",
+        _                                         => category.ToString()
+    };
+}

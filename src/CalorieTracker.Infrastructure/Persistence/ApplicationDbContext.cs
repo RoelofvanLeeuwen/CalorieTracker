@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ConsumptionEntry> ConsumptionEntries => Set<ConsumptionEntry>();
     public DbSet<UserProfile>      UserProfiles       => Set<UserProfile>();
     public DbSet<Activity>         Activities         => Set<Activity>();
+    public DbSet<Notification>     Notifications      => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
