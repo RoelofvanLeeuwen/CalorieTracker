@@ -3,6 +3,7 @@ using CalorieTracker.Domain;
 using CalorieTracker.Infrastructure;
 using CalorieTracker.Infrastructure.Persistence;
 using CalorieTracker.Web.Components;
+using CalorieTracker.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddDomain();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSingleton<NotificationStateService>();
 
 var app = builder.Build();
 
