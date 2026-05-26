@@ -2,7 +2,7 @@
 
 ## Huidige fase
 
-**Actieve branch:** `feature/US-005-meldingencentrum` → PR #10 open naar `development`
+**Actieve branch:** `development`
 
 ## Afgeronde onderdelen
 
@@ -18,7 +18,7 @@
 | UX-007 — Responsive modals (bottom sheet op mobiel) | Media query in app.css | Getest, PR gemerged |
 | UX-006 — Bewerken consumptie en activiteiten via modal | BewerkenConsumptieModal + BewerkenActiviteitModal | Getest, PR gemerged |
 | US-004 — Inline dashboard-meldingen | MeldingBanner.razor, Home.razor, app.css | Getest, PR gemerged |
-| US-005 — Meldingencentrum | Badge, live count, /meldingen pagina, EF tracker fix | Getest, PR #10 open |
+| US-005 — Meldingencentrum | Badge, live count, /meldingen pagina, EF tracker fix | Getest, PR gemerged |
 
 ## Lopende onderdelen
 
@@ -36,4 +36,4 @@ _Geen._
 
 ## Volgende logische stap
 
-PR #10 mergen naar development. Daarna backlog bepalen.
+Backlog bepalen: UX-verbetering ConsumptieWizard of nieuwe user story.
