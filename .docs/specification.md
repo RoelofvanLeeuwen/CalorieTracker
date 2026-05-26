@@ -334,6 +334,35 @@ Backdrop gebruikt `@onmousedown` + `@onmouseup` met een vlag. De modal stopt pro
 
 ---
 
+### UX-CON-001 — ConsumptieWizard keyboard UX en mobile layout
+
+**Status:** Gereed — getest en goedgekeurd (2026-05-26)
+
+**Verhaal:**
+> Als gebruiker wil ik de ConsumptieWizard efficient kunnen bedienen met het toetsenbord en een goede mobiele layout zien, zodat ik snel en zonder muis een consumptie kan invoeren.
+
+**Verfijningen:**
+- Debounce van 250ms op de zoekinput — voorkomt overmatige DB-queries bij snel typen.
+- Pijltoetsen (↑/↓) navigeren door de suggestielijst; gefocuste suggestie krijgt visuele markering.
+- Enter selecteert de gefocuste suggestie; bij één suggestie selecteert Enter die suggestie direct.
+- Escape sluit de wizard vanuit elke stap.
+- Stap 3 (hoeveelheid): hoeveelheidsveld krijgt automatisch focus bij openen.
+- Stap 3: Enter in het hoeveelheidsveld slaat de consumptie op (mits hoeveelheid > 0).
+- Op mobiel (≤ 640px): `gc-form-row` wordt single-column zodat formulierrijen niet te krap worden.
+
+**Scope:** `ConsumptieWizard.razor`, `app.css`.
+
+**Acceptatiescenario's:**
+
+1. Typ snel meerdere letters — suggesties verschijnen pas na een korte pauze (debounce).
+2. Typ een bekende naam, druk ↓/↑ — markering beweegt door de lijst; Enter selecteert het gemarkeerde item.
+3. Druk Escape in elke stap — wizard sluit.
+4. Selecteer een product — hoeveelheidsveld is direct gefocust.
+5. Voer een hoeveelheid in en druk Enter — consumptie wordt opgeslagen.
+6. Open op ≤ 640px breedte en ga naar "Nieuw product" — formulierrijen staan single-column.
+
+---
+
 ## Toekomstige scope
 
 - AI-fotoherkenning: gebruiker maakt een foto van zijn maaltijd, het systeem herkent de producten en geschatte hoeveelheden via een AI-model.

@@ -1,3 +1,4 @@
+@implements IDisposable
 @inject IProductRepository ProductRepo
 @inject IConsumptionEntryRepository ConsumptionRepo
 
@@ -6,7 +7,8 @@
     <div class="gc-modal-backdrop"
          @onmousedown="() => _backdropMouseDown = true"
          @onmouseup="OnBackdropMouseUp">
-        <div class="gc-modal" @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation>
+        <div class="gc-modal" @onmousedown:stopPropagation @onmouseup:stopPropagation @onclick:stopPropagation
+             @onkeydown="OnModalKeyDown">
 
             <div class="gc-modal-head">
                 <div>
@@ -30,15 +32,19 @@
                                @bind="_searchQuery"
                                @bind:event="oninput"
                                @bind:after="OnSearchInput"
+                               @onkeydown="OnSearchKeyDown"
                                autofocus />
                     </label>
 
                     @if (_suggestions.Count > 0)
                     {
                         <ul class="gc-suggest-list">
-                            @foreach (var p in _suggestions)
+                            @for (var i = 0; i < _suggestions.Count; i++)
                             {
-                                <li @onclick="() => SelectProduct(p)">
+                                var index = i;
+                                var p = _suggestions[i];
+                                <li class="@(index == _focusedIndex ? "is-focused" : "")"
+                                    @onclick="() => SelectProduct(p)">
                                     <strong>@p.Name</strong>
                                     <span>@p.KcalPer100g.ToString("F0") kcal/100g &nbsp;·&nbsp; @p.DefaultUnit.GetLabel()</span>
                                 </li>
@@ -156,8 +162,9 @@
                                     <span style="color:var(--gc-ink-3)"> (gram)</span>
                                 }
                             </span>
-                            <input type="number" @bind="_quantity" min="0.1" step="0.1"
-                                   placeholder="@(_selectedProduct.DefaultUnit == UnitTypeDto.Piece ? "bijv. 2" : "bijv. 150")" />
+                            <input type="number" @ref="_quantityInput" @bind="_quantity" min="0.1" step="0.1"
+                                   placeholder="@(_selectedProduct.DefaultUnit == UnitTypeDto.Piece ? "bijv. 2" : "bijv. 150")"
+                                   @onkeydown="OnQuantityKeyDown" />
                         </label>
 
                         @if (_quantity > 0 && _selectedProduct is not null)
@@ -236,9 +243,11 @@
     }
 
     // Search
-    private string                 _searchQuery = "";
-    private List<ProductDto>       _suggestions = [];
+    private string                 _searchQuery   = "";
+    private List<ProductDto>       _suggestions   = [];
     private bool                   _searching;
+    private int                    _focusedIndex  = -1;
+    private CancellationTokenSource _searchCts    = new();
 
     // Create
     private string      _newName        = "";
@@ -252,9 +261,11 @@
     private string?     _createError;
 
     // Quantity
-    private ProductDto? _selectedProduct;
-    private decimal     _quantity;
-    private DateTime    _consumedAt;
+    private ProductDto?    _selectedProduct;
+    private decimal        _quantity;
+    private DateTime       _consumedAt;
+    private ElementReference _quantityInput;
+    private bool           _shouldFocusQuantity;
 
     public void Open(MealMomentDto mealMoment, DateOnly forDate)
     {
@@ -280,6 +291,7 @@
         _searchQuery  = "";
         _suggestions  = [];
         _searching    = false;
+        _focusedIndex = -1;
         _selectedProduct = null;
         _quantity     = 0;
         ResetCreate();
@@ -300,14 +312,67 @@
 
     private async Task OnSearchInput()
     {
+        _suggestions  = [];
+        _focusedIndex = -1;
+
         if (_searchQuery.Length < 2)
         {
-            _suggestions = [];
+            _searching = false;
             return;
         }
-        _searching   = true;
-        _suggestions = (await ProductRepo.SearchAsync(_searchQuery)).ToList();
-        _searching   = false;
+
+        _searchCts.Cancel();
+        _searchCts.Dispose();
+        _searchCts = new CancellationTokenSource();
+        var token = _searchCts.Token;
+
+        try
+        {
+            _searching = true;
+            await Task.Delay(250, token);
+            _suggestions = (await ProductRepo.SearchAsync(_searchQuery)).ToList();
+            _searching = false;
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                _focusedIndex = Math.Min(_focusedIndex + 1, _suggestions.Count - 1);
+                break;
+            case "ArrowUp":
+                _focusedIndex = Math.Max(_focusedIndex - 1, -1);
+                break;
+            case "Enter":
+                if (_focusedIndex >= 0 && _focusedIndex < _suggestions.Count)
+                    SelectProduct(_suggestions[_focusedIndex]);
+                else if (_suggestions.Count == 1)
+                    SelectProduct(_suggestions[0]);
+                break;
+        }
+    }
+
+    private void OnModalKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") Close();
+    }
+
+    private void OnQuantityKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && _quantity > 0)
+            _ = SaveConsumption();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldFocusQuantity)
+        {
+            _shouldFocusQuantity = false;
+            try { await _quantityInput.FocusAsync(); } catch { }
+        }
     }
 
     private void GoToCreate()
@@ -328,9 +393,10 @@
 
     private void SelectProduct(ProductDto product)
     {
-        _selectedProduct = product;
-        _step            = Step.Quantity;
-        _stepTitle       = "Hoeveelheid";
+        _selectedProduct     = product;
+        _step                = Step.Quantity;
+        _stepTitle           = "Hoeveelheid";
+        _shouldFocusQuantity = true;
         StateHasChanged();
     }
 
@@ -393,4 +459,6 @@
         if (TimeOnly.TryParseExact(e.Value?.ToString(), "HH:mm", out var t))
             _consumedAt = DateOnly.FromDateTime(_consumedAt).ToDateTime(t);
     }
+
+    public void Dispose() => _searchCts.Dispose();
 }
