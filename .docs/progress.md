@@ -19,6 +19,7 @@
 | UX-006 — Bewerken consumptie en activiteiten via modal | BewerkenConsumptieModal + BewerkenActiviteitModal | Getest, PR gemerged |
 | US-004 — Inline dashboard-meldingen | MeldingBanner.razor, Home.razor, app.css | Getest, PR gemerged |
 | US-005 — Meldingencentrum | Badge, live count, /meldingen pagina, EF tracker fix | Getest, PR gemerged |
+| UX-CON-001 — ConsumptieWizard keyboard UX | Debounce, pijlnavigatie, Escape, autofocus, Enter opslaan, mobile form-row | Getest, PR gereed |
 
 ## Lopende onderdelen
 
@@ -28,7 +29,6 @@ _Geen._
 
 | Prioriteit | Onderdeel | Reden |
 |-----------|-----------|-------|
-| Could | UX-verbetering ConsumptieWizard (autocomplete, keyboard UX, mobile layout) | Bewust uitgesteld |
 
 ## Bekende problemen
 
@@ -36,4 +36,4 @@ _Geen._
 
 ## Volgende logische stap
 
-Backlog bepalen: UX-verbetering ConsumptieWizard of nieuwe user story.
+Backlog is leeg. Volgende stap: nieuwe user story voorstellen of project afsluiten.

@@ -636,6 +636,7 @@ html, body {
     max-height: 90vh;
     animation: sheet-in .22s ease;
   }
+  .gc-form-row { grid-template-columns: 1fr; }
 }
 
 /* ===== Suggest list ===== */
@@ -657,6 +658,7 @@ html, body {
 }
 .gc-suggest-list li:last-child { border-bottom: none; }
 .gc-suggest-list li:hover { background: var(--gc-primary-50); }
+.gc-suggest-list li.is-focused { background: var(--gc-primary-50); box-shadow: inset 3px 0 0 var(--gc-primary); }
 .gc-suggest-list li strong { font-size: 14px; font-weight: 700; }
 
 /* ===== Suggest empty state ===== */
