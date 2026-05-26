@@ -2,7 +2,7 @@
 
 ## Huidige fase
 
-**Actieve branch:** `development`
+**Actieve branch:** `feature/US-005-meldingencentrum` → PR #10 open naar `development`
 
 ## Afgeronde onderdelen
 
@@ -18,6 +18,7 @@
 | UX-007 — Responsive modals (bottom sheet op mobiel) | Media query in app.css | Getest, PR gemerged |
 | UX-006 — Bewerken consumptie en activiteiten via modal | BewerkenConsumptieModal + BewerkenActiviteitModal | Getest, PR gemerged |
 | US-004 — Inline dashboard-meldingen | MeldingBanner.razor, Home.razor, app.css | Getest, PR gemerged |
+| US-005 — Meldingencentrum | Badge, live count, /meldingen pagina, EF tracker fix | Getest, PR #10 open |
 
 ## Lopende onderdelen
 
@@ -27,7 +28,6 @@ _Geen._
 
 | Prioriteit | Onderdeel | Reden |
 |-----------|-----------|-------|
-| Should | US-005 — Meldingencentrum (belpictogram + geschiedenis) | Nieuw gepland na US-004 |
 | Could | UX-verbetering ConsumptieWizard (autocomplete, keyboard UX, mobile layout) | Bewust uitgesteld |
 
 ## Bekende problemen
@@ -36,4 +36,4 @@ _Geen._
 
 ## Volgende logische stap
 
-US-005 oppakken: meldingencentrum met belpictogram en geschiedenis.
+PR #10 mergen naar development. Daarna backlog bepalen.
